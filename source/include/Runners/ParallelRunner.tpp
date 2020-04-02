@@ -162,6 +162,7 @@ void ParallelRunner<SetupClass>::set_minimizers(
     PREW::CppUtils::Str::string_to_vec( minimizers_str, "->" );
   
   for (const auto & min_name: minimizers_split) {
+    spdlog::debug("ParallelRunner: Adding minimizer {}", min_name);
     m_minuit_factories.push_back(
       PREW::Fit::MinuitFactory(
         Names::MinimizerNaming::minimizer_naming_map.at(min_name),

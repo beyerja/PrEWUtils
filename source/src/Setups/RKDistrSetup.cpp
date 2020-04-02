@@ -230,7 +230,22 @@ void RKDistrSetup::complete_setup() {
     for (const auto & distr_name : m_used_distr_names) {    
       this->complete_distr_setup( distr_name, energy );
     } 
-  } 
+  }
+  
+  // For debugging:
+  spdlog::debug("RKDistrSetup: Printing results of completed setup");
+  spdlog::debug("Using distributions:");
+  for ( const auto & used_distr: m_used_distrs ) {
+    const auto & info = used_distr.m_info;
+    spdlog::debug("{} @ {} & {}", info.m_distr_name, info.m_energy, info.m_pol_config);
+    spdlog::debug(" -> First signal value: {}", used_distr.m_sig_distr.at(0));
+  }
+  spdlog::debug("Using coefficients:");
+  for ( const auto & used_coef: m_used_coefs ) {
+    const auto & info = used_coef.m_info;
+    spdlog::debug("{} for {} @ {} & {}", used_coef.m_coef_name, info.m_distr_name, info.m_energy, info.m_pol_config);
+    spdlog::debug(" -> First coef value: {}", used_coef.m_coefficients.at(0));
+  }
 }
 
 //------------------------------------------------------------------------------
