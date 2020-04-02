@@ -28,6 +28,12 @@ namespace ParNaming {
     const std::string & chiral_config
   );
   
+  std::string total_chi_xs_par_name ( const std::string & distr_name );
+  std::string asymm_par_name ( 
+    const std::string & distr_name,
+    int asymm_index=0
+  );
+  
   std::string lumi_name ( int energy, std::string energy_unit="GeV" );
   
 } // Namespace ParNaming
