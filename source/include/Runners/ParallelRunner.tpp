@@ -25,7 +25,15 @@ ParallelRunner<SetupClass>::ParallelRunner(
   m_toy_gen(PREW::ToyMeas::ToyGen(m_data_connector,setup.get_pars()))
 {
   /** Constructor extracts all relevant information from the setup.
-  TODO TODO TODO UPDATE WITH MINIMIZERS INSTRUCTIONS
+      Minimizer string describes which Minuit2 minimizers to use.
+      Multiple minimizers can be given separated by a "->".
+      Allowed minimizers are:
+        Migrad
+        Simplex
+        Combined
+        Scan
+        Fumili
+        MigradBFGS
   **/
   // Extract the parameters which should be fitted for a given energy
   for (const auto & energy: m_energies) {
@@ -154,6 +162,7 @@ void ParallelRunner<SetupClass>::set_minimizers(
     PREW::CppUtils::Str::string_to_vec( minimizers_str, "->" );
   
   for (const auto & min_name: minimizers_split) {
+    spdlog::debug("ParallelRunner: Adding minimizer {}", min_name);
     m_minuit_factories.push_back(
       PREW::Fit::MinuitFactory(
         Names::MinimizerNaming::minimizer_naming_map.at(min_name),
