@@ -48,6 +48,10 @@ namespace Setups {
     // Map tracking which chiral cross sections should be free for each distr
     std::map<std::string,std::vector<std::string>> m_free_xs_chi {};
     
+    // Tracking which total chiral cross sections and asymmetries are free
+    std::vector<std::string> m_free_total_xs_chi {};
+    std::map<std::string,std::vector<std::string>> m_free_asymmetries {};
+    
     public: 
       // Constructor
       RKDistrSetup();
@@ -93,6 +97,26 @@ namespace Setups {
         const std::string & chiral_config 
       );
       
+      void free_total_chiral_xsection( const std::string & distr_name );
+      void free_asymmetry( 
+        const std::string & distr_name,
+        const std::string & chiral_config_0,
+        const std::string & chiral_config_1
+      );
+      void free_asymmetry( 
+        const std::string & distr_name,
+        const std::string & chiral_config_0,
+        const std::string & chiral_config_1,
+        const std::string & chiral_config_2
+      );
+      void free_asymmetry( 
+        const std::string & distr_name,
+        const std::string & chiral_config_0,
+        const std::string & chiral_config_1,
+        const std::string & chiral_config_2,
+        const std::string & chiral_config_3
+      );
+      
       void set_WW_mu_only();
       void set_ZZ_mu_only();
       
@@ -132,6 +156,8 @@ namespace Setups {
       bool xs_chi_is_free(
         const PREW::Data::DistrInfo & info_chi
       ) const;
+      bool total_chiral_xsection_is_free(const std::string & distr_name) const;
+      bool asymm_is_free( const PREW::Data::DistrInfo & info_chi ) const;
       
       std::vector<PREW::Data::DistrInfo> get_infos_pol(
         const std::string & distr_name,
@@ -142,6 +168,12 @@ namespace Setups {
         int energy
       ) const;
       
+      void add_asymm_par( const std::string & par_name );
+      
+      void add_chi_xs_sum_coef(
+        const PREW::Data::DistrInfo & info_chi,
+        int n_bins
+      );
       void add_unity_coef(const PREW::Data::DistrInfo & info, int n_bins);
       void add_tau_removal_coef(const PREW::Data::DistrInfo & info, int n_bins);
       void add_nu_and_tau_removal_coef(
@@ -157,6 +189,12 @@ namespace Setups {
       PREW::Data::FctLink get_tau_removal_fct_link() const;
       PREW::Data::FctLink get_nu_and_tau_removal_fct_link() const;
       PREW::Data::FctLink get_chi_xs_fct_link( 
+        const PREW::Data::DistrInfo & info_chi
+      ) const;
+      PREW::Data::FctLink get_total_chi_xs_fct_link( 
+        const PREW::Data::DistrInfo & info_chi
+      ) const;
+      PREW::Data::FctLink get_asymm_fct_link( 
         const PREW::Data::DistrInfo & info_chi
       ) const;
       PREW::Data::FctLink get_lumi_fraction_fct_link(
