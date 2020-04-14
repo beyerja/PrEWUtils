@@ -5,11 +5,27 @@ project(PrEWUtils) # Project name
 
 # External libraries
 # TODO TODO TODO MAKE THIS PATH UNSPECIFIC!
-find_library( PrEW PrEW_lib HINTS ../PrEW/build/source/prew REQUIRED )
-find_library( SPDLOG_LIB spdlog HINTS ../PrEW/external/spdlog/build REQUIRED )
+find_library( 
+  PrEW PrEW 
+  HINTS 
+    ../PrEW/lib # On my local computer
+    /afs/desy.de/group/flc/pool/beyerjac/TGCAnalysis/PrEW/lib # On the NAF
+  REQUIRED 
+)
+find_library( 
+  spdlog spdlog 
+  HINTS 
+    ../PrEW/external/spdlog/build 
+    /afs/desy.de/group/flc/pool/beyerjac/TGCAnalysis/PrEW/PrEW/external/spdlog/build 
+  REQUIRED 
+)
+
+# Find installation directories and set include paths accordingly
+get_filename_component(PrEW_lib_dir ${PrEW} DIRECTORY)
+get_filename_component(spdlog_lib_dir ${spdlog} DIRECTORY)
 include_directories(
-  ../PrEW/source/prew/include
-  ../PrEW/external/spdlog/include
+  ${PrEW_lib_dir}/../source/prew/include
+  ${spdlog_lib_dir}/../include
 )
 
 # Common packages
@@ -18,7 +34,7 @@ include_directories( SYSTEM ${ROOT_INCLUDE_DIRS} )
 link_libraries( ${ROOT_LIBRARIES} )
 add_definitions( ${ROOT_DEFINITIONS} )
 
-# Header files that can be included using #include
+# Local header files that can be included using #include
 include_directories(
   source/include
 )
