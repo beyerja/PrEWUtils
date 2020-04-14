@@ -35,7 +35,7 @@ target_compile_options(
 
 target_link_libraries(${BINARY} PUBLIC 
   ${PrEW}
-  ${SPDLOG_LIB} # Logging
+  ${spdlog} # Logging
   ROOT::Minuit2 # Minimization
 )
 
