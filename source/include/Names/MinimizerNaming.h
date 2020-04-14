@@ -1,6 +1,8 @@
 #ifndef LIB_MINIMIZERNAMING_H
 #define LIB_MINIMIZERNAMING_H 1
 
+#include <Names/MinimizerInfo.h>
+
 // Includes from ROOT
 #include "Minuit2/Minuit2Minimizer.h"
 
@@ -24,6 +26,8 @@ namespace MinimizerNaming {
       {"Fumili",      ROOT::Minuit2::kFumili},
       {"MigradBFGS",  ROOT::Minuit2::kMigradBFGS},
     };
+    
+  MinInfoVec read_mininimizer_str(const std::string & min_str);
   
 } // Namespace MinimizerNaming
   
