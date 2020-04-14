@@ -150,6 +150,8 @@ void ParallelRunner<SetupClass>::set_minimizers(
       add their factories in order to the vector of minimizers.
       String must contain names of minimizers in order, separated by a "->"
       (representing the flow of results).
+      Each minimizer can be assigned (MaxFcnCalls,MaxIters,Tolerance) options
+      by writing them in such brackets after the name.
       Allowed minimizers are:
         Migrad
         Simplex
@@ -157,16 +159,18 @@ void ParallelRunner<SetupClass>::set_minimizers(
         Scan
         Fumili
         MigradBFGS
+      Generic example:
+        "MinimizerID1(MaxFcnCalls,MaxIters,Tolerance)->MinimizerID1(MaxFcnCalls,MaxIters,Tolerance)->..."
   **/
-  auto minimizers_split = 
-    PREW::CppUtils::Str::string_to_vec( minimizers_str, "->" );
+  auto min_infos = Names::MinimizerNaming::read_mininimizer_str(minimizers_str);
   
-  for (const auto & min_name: minimizers_split) {
-    spdlog::debug("ParallelRunner: Adding minimizer {}", min_name);
+  for (const auto & min_info : min_infos) {
     m_minuit_factories.push_back(
       PREW::Fit::MinuitFactory(
-        Names::MinimizerNaming::minimizer_naming_map.at(min_name),
-        10000, 10000, 0.0001 // TODO FIXED FOR NOW, MAKE CHANGEABLE LATER
+        min_info.m_type, 
+        min_info.m_max_fcn_calls, 
+        min_info.m_max_iters, 
+        min_info.m_tolerance
       )
     );
   }
@@ -198,7 +202,7 @@ ParallelRunner<SetupClass>::single_fit_task(int energy) const {
     final_result = this->single_minimization(&container, minuit_factory);
   }
 
-  spdlog::debug("ParallelRunner: Minimization @ E={} finished.", energy);
+  spdlog::info("ParallelRunner: Single minimization @ E={} finished.", energy);
   return final_result;
 }
 
