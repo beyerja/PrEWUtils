@@ -221,7 +221,6 @@ void RKDistrSetup::free_total_chiral_xsection(const std::string & distr_name) {
   PREW::Fit::FitPar scaling_par {
     Names::ParNaming::total_chi_xs_par_name(distr_name), 1.0, 0.001
   };
-  scaling_par.set_limits(0,10);
   m_common_pars.push_back(scaling_par);
   m_free_total_xs_chi.push_back(distr_name);
 }
@@ -668,7 +667,6 @@ void RKDistrSetup::add_asymm_par( const std::string & par_name ) {
       (They describe the deviation from the prediction.)
   **/
   PREW::Fit::FitPar asymm_par { par_name, 0.0, 0.0001 };
-  asymm_par.set_limits(-1,1);
   m_common_pars.push_back(asymm_par);
 }
 
