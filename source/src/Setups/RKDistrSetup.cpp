@@ -113,7 +113,6 @@ void RKDistrSetup::add_pol(
       Automatically sets restriction that pol can only be between -1 and +1.
   **/
   PREW::Fit::FitPar new_pol {name, val, ini_unc};
-  new_pol.set_limits(-1,1);
   m_separate_pars[energy].push_back(new_pol);
 }
 
