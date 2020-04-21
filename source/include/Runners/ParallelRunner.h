@@ -1,6 +1,7 @@
 #ifndef LIB_PARALLELRUNNER_H
 #define LIB_PARALLELRUNNER_H 1
 
+#include <DataHelp/BinSelector.h>
 #include <Parallel/ThreadPool.h>
 
 // Includes from PREW
@@ -21,12 +22,15 @@ namespace Runners {
     /** Class to run a given toy setup in multiple threads in parallel.
     **/
     
-    // DataConnector, ToyGen
     std::vector<int> m_energies;
     std::map<int, PREW::Fit::ParVec> m_pars; // Parameters used at each energy
     PREW::Connect::DataConnector m_data_connector;
     PREW::ToyMeas::ToyGen m_toy_gen;
     std::vector<PREW::Fit::MinuitFactory> m_minuit_factories;
+    
+    // Extra options
+    bool m_use_selector {false};
+    DataHelp::BinSelector m_bin_selector {};
     
     public:
       // Constructors
@@ -34,6 +38,9 @@ namespace Runners {
         const SetupClass & setup,
         const std::string & minimizers
       );
+      
+      // Set extra options
+      void set_bin_selector(DataHelp::BinSelector bin_selector);
       
       // Running toy fits
       PREW::Fit::ResultVec run_toy_fits(

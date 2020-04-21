@@ -46,6 +46,18 @@ ParallelRunner<SetupClass>::ParallelRunner(
 //------------------------------------------------------------------------------
 
 template <class SetupClass>
+void ParallelRunner<SetupClass>::set_bin_selector(
+  DataHelp::BinSelector bin_selector
+) {
+  /** Set a bin selector that excludes bins from the minimization process.
+  **/
+  m_bin_selector = bin_selector;
+  m_use_selector = true;
+}
+
+//------------------------------------------------------------------------------
+
+template <class SetupClass>
 PREW::Fit::ResultVec ParallelRunner<SetupClass>::run_toy_fits(
   int energy,
   int n_toys, 
@@ -195,6 +207,9 @@ ParallelRunner<SetupClass>::single_fit_task(int energy) const {
     m_pars.at(energy),
     &container
   );
+  
+  // If requested remove bins according to selector
+  if ( m_use_selector ) { m_bin_selector.remove_bins(&container); }
   
   // Minimize with all given minimizers, save only the results of the last one
   PREW::Fit::FitResult final_result {};
