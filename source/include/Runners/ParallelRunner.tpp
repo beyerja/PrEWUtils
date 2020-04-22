@@ -5,8 +5,9 @@
 #include <Runners/ParallelRunner.h>
 
 // Includes from PrEW
-#include "Fit/ChiSqMinimizer.h"
 #include "CppUtils/Str.h"
+#include "Fit/ChiSqMinimizer.h"
+#include "ToyMeas/ParFlct.h"
 
 #include "spdlog/spdlog.h"
 
@@ -199,14 +200,12 @@ ParallelRunner<SetupClass>::single_fit_task(int energy) const {
   **/
   spdlog::debug("ParallelRunner: Create toy measurement @ E={}.", energy);
   auto distrs = m_toy_gen.get_fluctuated_distrs(energy);
+  auto pars = m_pars.at(energy);
+  PREW::ToyMeas::ParFlct::fluctuate_constrs(pars);
   
   spdlog::debug("ParallelRunner: Set up fit container @ E={}.", energy);
   PREW::Fit::FitContainer container {};
-  m_data_connector.fill_fit_container(
-    distrs,
-    m_pars.at(energy),
-    &container
-  );
+  m_data_connector.fill_fit_container( distrs, pars, &container );
   
   // If requested remove bins according to selector
   if ( m_use_selector ) { m_bin_selector.remove_bins(&container); }
