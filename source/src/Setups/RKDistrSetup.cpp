@@ -135,7 +135,7 @@ void RKDistrSetup::add_lumi_constr(
       m_separate_pars.at(energy).end(), 
       name_cond
     );
-  lumi_it->set_constrgauss( {constr_val, constr_unc} );
+  lumi_it->set_constrgauss( constr_val, constr_unc );
 }
 
 //------------------------------------------------------------------------------
@@ -156,7 +156,7 @@ void RKDistrSetup::add_pol_constr(
       m_separate_pars.at(energy).end(), 
       name_cond
     );
-  pol_it->set_constrgauss( {constr_val, constr_unc} );
+  pol_it->set_constrgauss( constr_val, constr_unc );
 }
 
 
