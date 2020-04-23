@@ -143,6 +143,24 @@ void RKDistrSetup::add_pol_constr(
   (this->find_par(name,energy)).set_constrgauss( constr_val, constr_unc );
 }
 
+//------------------------------------------------------------------------------
+
+void RKDistrSetup::fix_lumi(int energy) {
+  /** Fix the luminosity parameter at the given energy to its current value.
+      Will not be varied by fit.
+  **/
+  std::string name = Names::ParNaming::lumi_name(energy);
+  (this->find_par(name,energy)).fix();
+}
+
+//------------------------------------------------------------------------------
+
+void RKDistrSetup::fix_pol(const std::string & name, int energy) {
+  /** Fix the polarisation parameter at the given energy to its current value.
+      Will not be varied by fit.
+  **/
+  (this->find_par(name,energy)).fix();
+}
 
 //------------------------------------------------------------------------------
 

@@ -90,6 +90,9 @@ namespace Setups {
         double constr_unc
       );
       
+      void fix_lumi(int energy);
+      void fix_pol(const std::string & name, int energy);
+      
       void activate_cTGCs();
       
       void free_chiral_xsection( 
