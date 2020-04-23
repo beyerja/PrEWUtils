@@ -127,15 +127,7 @@ void RKDistrSetup::add_lumi_constr(
       energy.
   **/
   std::string name = Names::ParNaming::lumi_name(energy);
-  auto name_cond = 
-    [name](const PREW::Fit::FitPar &par){return par.get_name()==name;};
-  auto lumi_it = 
-    find_if( 
-      m_separate_pars.at(energy).begin(), 
-      m_separate_pars.at(energy).end(), 
-      name_cond
-    );
-  lumi_it->set_constrgauss( constr_val, constr_unc );
+  (this->find_par(name,energy)).set_constrgauss( constr_val, constr_unc );
 }
 
 //------------------------------------------------------------------------------
@@ -148,15 +140,7 @@ void RKDistrSetup::add_pol_constr(
 ) {
   /** Add a gaussian constraint on the given single beam polarisation.
   **/
-  auto name_cond = 
-    [name](const PREW::Fit::FitPar &par){return par.get_name()==name;};
-  auto pol_it = 
-    find_if( 
-      m_separate_pars.at(energy).begin(), 
-      m_separate_pars.at(energy).end(), 
-      name_cond
-    );
-  pol_it->set_constrgauss( constr_val, constr_unc );
+  (this->find_par(name,energy)).set_constrgauss( constr_val, constr_unc );
 }
 
 
@@ -521,6 +505,38 @@ void RKDistrSetup::read_input_files() {
       this->read_input_file(file_path, energy);
     }
   }
+}
+
+//------------------------------------------------------------------------------
+
+PREW::Fit::FitPar & RKDistrSetup::find_par_in_vec(
+  const std::string & par_name,
+  PREW::Fit::ParVec & vec
+) {
+  /** Find the fit parameter of given name in the given vector and return a 
+      (non-const) reference to it.
+  **/
+  auto name_cond =
+    [par_name](const PREW::Fit::FitPar &par){return par.get_name()==par_name;};
+  auto par_it = std::find_if(vec.begin(), vec.end(), name_cond);
+  if ( par_it == vec.end() ) {
+    throw std::invalid_argument( ("Couldn't find parameter " + par_name + " in vector!").c_str() );
+  }
+  return *par_it;
+}
+
+PREW::Fit::FitPar & RKDistrSetup::find_par(const std::string & name) {
+  /** Find the parameter of given name in the common parameters and return a 
+      (non-const) reference to it.
+  **/
+  return this->find_par_in_vec(name, m_common_pars);
+}
+
+PREW::Fit::FitPar & RKDistrSetup::find_par(const std::string & name, int energy) {
+  /** Find the parameter of given name in the energy-specific parameters and 
+      return a (non-const) reference to it.
+  **/
+  return this->find_par_in_vec(name, m_separate_pars.at(energy));
 }
 
 //------------------------------------------------------------------------------
