@@ -90,6 +90,9 @@ namespace Setups {
         double constr_unc
       );
       
+      void fix_lumi(int energy);
+      void fix_pol(const std::string & name, int energy);
+      
       void activate_cTGCs();
       
       void free_chiral_xsection( 
@@ -137,6 +140,14 @@ namespace Setups {
       // Input-related
       void read_input_file(const std::string & file_path, int energy);
       void read_input_files();
+      
+      // Internal helpers
+      PREW::Fit::FitPar & find_par_in_vec(
+        const std::string & par_name,
+        PREW::Fit::ParVec & vec
+      );
+      PREW::Fit::FitPar & find_par(const std::string & name);
+      PREW::Fit::FitPar & find_par(const std::string & name, int energy);
       
       // Linking related
       void complete_distr_setup(const std::string & distr_name, int energy);
