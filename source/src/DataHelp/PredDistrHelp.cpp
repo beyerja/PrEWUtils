@@ -8,7 +8,7 @@ namespace DataHelp {
 //------------------------------------------------------------------------------
 
 double PredDistrHelp::get_pred_sum (
-  const PREW::Data::PredDistr & pred, 
+  const PrEW::Data::PredDistr & pred, 
   const std::string & type
 ) {
   /** Return the sum of the predicted distribution bins.

@@ -26,12 +26,12 @@ MinInfoVec MinimizerNaming::read_mininimizer_str(const std::string & min_str) {
   double default_tolerance = 0.0001;
   
   auto minimizers_split = 
-      PREW::CppUtils::Str::string_to_vec( min_str, "->" );
+      PrEW::CppUtils::Str::string_to_vec( min_str, "->" );
   
   
   for (const auto & individual_min: minimizers_split) {
     auto open_bracket_split = 
-      PREW::CppUtils::Str::string_to_vec( individual_min, "(" );
+      PrEW::CppUtils::Str::string_to_vec( individual_min, "(" );
     
     // Finding the type of minimizer
     auto min_typename = open_bracket_split.at(0);
@@ -47,7 +47,7 @@ MinInfoVec MinimizerNaming::read_mininimizer_str(const std::string & min_str) {
     if (open_bracket_split.size() == 2) {
       // Bracket options are given, use them
       auto comma_split = 
-        PREW::CppUtils::Str::string_to_vec( open_bracket_split.at(1), "," );
+        PrEW::CppUtils::Str::string_to_vec( open_bracket_split.at(1), "," );
       
       if ( comma_split.size() != 3 ) {
         spdlog::warn("MinimizerNaming: Faulty Minimizer options {}", individual_min);
@@ -56,7 +56,7 @@ MinInfoVec MinimizerNaming::read_mininimizer_str(const std::string & min_str) {
       
       // Remove closing bracket from end of last string
       auto tolerance_str = 
-        PREW::CppUtils::Str::string_to_vec( comma_split.at(2), ")" ).at(0);
+        PrEW::CppUtils::Str::string_to_vec( comma_split.at(2), ")" ).at(0);
       
       min_info.m_max_fcn_calls = std::stoi(comma_split.at(0));
       min_info.m_max_iters = std::stoi(comma_split.at(1));

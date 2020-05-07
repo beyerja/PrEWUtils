@@ -89,7 +89,7 @@ void RKDistrSetup::set_lumi(
   std::string name = Names::ParNaming::lumi_name(energy);
   
   // Check if lumi for this energy already added
-  auto name_cond = [name](const PREW::Fit::FitPar &par){return par.get_name()==name;};
+  auto name_cond = [name](const PrEW::Fit::FitPar &par){return par.get_name()==name;};
   if ( 
     find_if(m_common_pars.begin(), m_common_pars.end(), name_cond) 
     != m_common_pars.end() 
@@ -112,7 +112,7 @@ void RKDistrSetup::add_pol(
   /** Add a single beam polarisation.
       Automatically sets restriction that pol can only be between -1 and +1.
   **/
-  PREW::Fit::FitPar new_pol {name, val, ini_unc};
+  PrEW::Fit::FitPar new_pol {name, val, ini_unc};
   m_separate_pars[energy].push_back(new_pol);
 }
 
@@ -176,7 +176,7 @@ void RKDistrSetup::add_pol_config(
   /** Add a polarisation configuration with a given luminosity fraction.
   **/
   m_pol_links.push_back(
-    PREW::Data::PolLink(energy,name,e_pol_name,p_pol_name,e_pol_sign,p_pol_sign)
+    PrEW::Data::PolLink(energy,name,e_pol_name,p_pol_name,e_pol_sign,p_pol_sign)
   );
   m_lumi_fractions[energy][name] = lumi_fraction;
 }
@@ -219,7 +219,7 @@ void RKDistrSetup::free_total_chiral_xsection(const std::string & distr_name) {
       Represents that the total chiral cross section of the corresponding 
       process is a free parameter.
   **/
-  PREW::Fit::FitPar scaling_par {
+  PrEW::Fit::FitPar scaling_par {
     Names::ParNaming::total_chi_xs_par_name(distr_name), 1.0, 0.001
   };
   m_common_pars.push_back(scaling_par);
@@ -332,12 +332,12 @@ const std::vector<int> & RKDistrSetup::get_energies() const {return m_energies;}
 
 //------------------------------------------------------------------------------
 
-PREW::Connect::DataConnector RKDistrSetup::get_data_connector() const {
+PrEW::Connect::DataConnector RKDistrSetup::get_data_connector() const {
   /** Get the connector that contains all the information that it needs to 
       properly link the predicition functions.
       Must be called _after_ calling final combination.
   **/
-  return PREW::Connect::DataConnector(
+  return PrEW::Connect::DataConnector(
     m_used_distrs,
     m_used_coefs,
     m_pred_links,
@@ -347,12 +347,12 @@ PREW::Connect::DataConnector RKDistrSetup::get_data_connector() const {
 
 //------------------------------------------------------------------------------
 
-PREW::Fit::ParVec RKDistrSetup::get_pars (int energy) const { 
+PrEW::Fit::ParVec RKDistrSetup::get_pars (int energy) const { 
   /** Get the parameters that are to be used by the prediciton functions at the
       given energy.
       Must be called _after_ calling final combination.
   **/
-  PREW::Fit::ParVec pars = m_common_pars;
+  PrEW::Fit::ParVec pars = m_common_pars;
   pars.insert(
     pars.end(), 
     m_separate_pars.at(energy).begin(),
@@ -363,12 +363,12 @@ PREW::Fit::ParVec RKDistrSetup::get_pars (int energy) const {
   
 //------------------------------------------------------------------------------
 
-PREW::Fit::ParVec RKDistrSetup::get_pars () const { 
+PrEW::Fit::ParVec RKDistrSetup::get_pars () const { 
   /** Get all parameters that are to be used by the prediciton functions at any
       energy.
       Must be called _after_ calling final combination.
   **/
-  PREW::Fit::ParVec pars = m_common_pars;
+  PrEW::Fit::ParVec pars = m_common_pars;
   for (const auto & [energy, separate_pars]: m_separate_pars) {
     pars.insert( pars.end(), separate_pars.begin(), separate_pars.end() );
   }
@@ -390,7 +390,7 @@ void RKDistrSetup::complete_distr_setup(
   **/
   // Mark distribution as used and determine binning of the distributions
   auto distrs = 
-    PREW::Data::DistrUtils::subvec_energy_and_name(
+    PrEW::Data::DistrUtils::subvec_energy_and_name(
       m_input_distrs, energy, distr_name
     );
   m_used_distrs.insert( m_used_distrs.end(), distrs.begin(), distrs.end() );
@@ -398,7 +398,7 @@ void RKDistrSetup::complete_distr_setup(
   
   // Get coefficients for this distribution and mark them as used
   auto coefs = 
-    PREW::Data::DistrUtils::subvec_energy_and_name( 
+    PrEW::Data::DistrUtils::subvec_energy_and_name( 
       m_input_coefs, energy, distr_name 
     );
   m_used_coefs.insert( m_used_coefs.end(), coefs.begin(), coefs.end() );
@@ -420,15 +420,15 @@ void RKDistrSetup::complete_distr_setup(
 //------------------------------------------------------------------------------
 
 void RKDistrSetup::complete_chi_setup(
-  const PREW::Data::DistrInfo & info_chi, 
+  const PrEW::Data::DistrInfo & info_chi, 
   int n_bins
 ) {
   /** Set up the links, coefficients and parameters for a given chiral 
       distribution with a given number of bins.
   **/
   // Set up the function links for this chiral configuration
-  PREW::Data::FctLinkVec sig_fct_links {};
-  PREW::Data::FctLinkVec bkg_fct_links {};
+  PrEW::Data::FctLinkVec sig_fct_links {};
+  PrEW::Data::FctLinkVec bkg_fct_links {};
   
   // Remove taus from WW if requested
   if ( m_WW_mu_only && (info_chi.m_distr_name == "WWsemileptonic") ) {
@@ -471,28 +471,28 @@ void RKDistrSetup::complete_chi_setup(
     sig_fct_links.push_back( this->get_asymm_fct_link( info_chi ) );
   }
 
-  PREW::Data::PredLink link_chi { info_chi, sig_fct_links, bkg_fct_links };
+  PrEW::Data::PredLink link_chi { info_chi, sig_fct_links, bkg_fct_links };
   m_pred_links.push_back(link_chi);
 }
 
 //------------------------------------------------------------------------------
 
 void RKDistrSetup::complete_pol_setup(
-  const PREW::Data::DistrInfo & info_pol, 
+  const PrEW::Data::DistrInfo & info_pol, 
   int n_bins
 ) {
   /** Set up the links, coefficients and parameters for a given polarised 
       distribution with a given number of bins.
   **/
   // Set up the function links for this polarisation configuration
-  PREW::Data::FctLinkVec sig_fct_links {};
-  PREW::Data::FctLinkVec bkg_fct_links {};
+  PrEW::Data::FctLinkVec sig_fct_links {};
+  PrEW::Data::FctLinkVec bkg_fct_links {};
     
   // Add instructions for luminosity factor
   this->add_lumi_fraction_coef(info_pol, n_bins);
   sig_fct_links.push_back( this->get_lumi_fraction_fct_link( info_pol ) );
     
-  PREW::Data::PredLink link_pol { info_pol, sig_fct_links, bkg_fct_links };
+  PrEW::Data::PredLink link_pol { info_pol, sig_fct_links, bkg_fct_links };
   m_pred_links.push_back(link_pol);
 }
 
@@ -502,9 +502,9 @@ void RKDistrSetup::read_input_file(const std::string & file_path, int energy) {
   /** Read input from a given file at a given energy.
   **/
   // PrEW interpretable input file info 
-  PREW::Input::InfoRKFile i {file_path, "RK", energy};
+  PrEW::Input::InfoRKFile i {file_path, "RK", energy};
   // File reading
-  PREW::Input::DataReader reader(&i);
+  PrEW::Input::DataReader reader(&i);
   reader.read_file();
   auto new_pred = reader.get_pred_distrs();
   auto new_coef = reader.get_coef_distrs();
@@ -527,15 +527,15 @@ void RKDistrSetup::read_input_files() {
 
 //------------------------------------------------------------------------------
 
-PREW::Fit::FitPar & RKDistrSetup::find_par_in_vec(
+PrEW::Fit::FitPar & RKDistrSetup::find_par_in_vec(
   const std::string & par_name,
-  PREW::Fit::ParVec & vec
+  PrEW::Fit::ParVec & vec
 ) {
   /** Find the fit parameter of given name in the given vector and return a 
       (non-const) reference to it.
   **/
   auto name_cond =
-    [par_name](const PREW::Fit::FitPar &par){return par.get_name()==par_name;};
+    [par_name](const PrEW::Fit::FitPar &par){return par.get_name()==par_name;};
   auto par_it = std::find_if(vec.begin(), vec.end(), name_cond);
   if ( par_it == vec.end() ) {
     throw std::invalid_argument( ("Couldn't find parameter " + par_name + " in vector!").c_str() );
@@ -543,14 +543,14 @@ PREW::Fit::FitPar & RKDistrSetup::find_par_in_vec(
   return *par_it;
 }
 
-PREW::Fit::FitPar & RKDistrSetup::find_par(const std::string & name) {
+PrEW::Fit::FitPar & RKDistrSetup::find_par(const std::string & name) {
   /** Find the parameter of given name in the common parameters and return a 
       (non-const) reference to it.
   **/
   return this->find_par_in_vec(name, m_common_pars);
 }
 
-PREW::Fit::FitPar & RKDistrSetup::find_par(const std::string & name, int energy) {
+PrEW::Fit::FitPar & RKDistrSetup::find_par(const std::string & name, int energy) {
   /** Find the parameter of given name in the energy-specific parameters and 
       return a (non-const) reference to it.
   **/
@@ -572,7 +572,7 @@ bool RKDistrSetup::has_cTGCs_available(
   
   // Find coefficients for this distribution to check for cTGC coefs
   auto coefs = 
-    PREW::Data::DistrUtils::subvec_energy_and_name( 
+    PrEW::Data::DistrUtils::subvec_energy_and_name( 
       m_used_coefs, energy, distr_name
     );
   
@@ -589,7 +589,7 @@ bool RKDistrSetup::has_cTGCs_available(
 //------------------------------------------------------------------------------
 
 bool RKDistrSetup::xs_chi_is_free(
-  const PREW::Data::DistrInfo & info_chi
+  const PrEW::Data::DistrInfo & info_chi
 ) const {
   /** Check if the chiral cross section of the given distribution is supposed
       to be a free parameter.
@@ -631,7 +631,7 @@ bool RKDistrSetup::total_chiral_xsection_is_free(
 }
 
 bool RKDistrSetup::asymm_is_free(
-  const PREW::Data::DistrInfo & info_chi
+  const PrEW::Data::DistrInfo & info_chi
 ) const {
   /** Check if the given chiral distribution is involved in a free asymmetry 
       parameter.
@@ -658,14 +658,14 @@ bool RKDistrSetup::asymm_is_free(
 
 //------------------------------------------------------------------------------
 
-std::vector<PREW::Data::DistrInfo> RKDistrSetup::get_infos_pol(
+std::vector<PrEW::Data::DistrInfo> RKDistrSetup::get_infos_pol(
   const std::string & distr_name,
   int energy
 ) const {
   /** Create distribution info containers for the given distribution for all 
       available polarisation configurations at the given energy.
   **/
-  std::vector<PREW::Data::DistrInfo> infos_pol {};
+  std::vector<PrEW::Data::DistrInfo> infos_pol {};
   for ( const auto & pol_link : m_pol_links ) {
     if ( pol_link.get_energy() == energy ) {
       infos_pol.push_back( { distr_name, pol_link.get_pol_config(), energy } );
@@ -676,18 +676,18 @@ std::vector<PREW::Data::DistrInfo> RKDistrSetup::get_infos_pol(
 
 //------------------------------------------------------------------------------
 
-std::vector<PREW::Data::DistrInfo> RKDistrSetup::get_infos_chi(
+std::vector<PrEW::Data::DistrInfo> RKDistrSetup::get_infos_chi(
   const std::string & distr_name,
   int energy
 ) const {
   /** Create distribution info containers for the given distribution for all 
       chiral configurations at the given energy.
   **/
-  std::vector<PREW::Data::DistrInfo> infos_chi {
-    {distr_name, PREW::GlobalVar::Chiral::eLpR, energy},
-    {distr_name, PREW::GlobalVar::Chiral::eRpL, energy},
-    {distr_name, PREW::GlobalVar::Chiral::eLpL, energy},
-    {distr_name, PREW::GlobalVar::Chiral::eRpR, energy}
+  std::vector<PrEW::Data::DistrInfo> infos_chi {
+    {distr_name, PrEW::GlobalVar::Chiral::eLpR, energy},
+    {distr_name, PrEW::GlobalVar::Chiral::eRpL, energy},
+    {distr_name, PrEW::GlobalVar::Chiral::eLpL, energy},
+    {distr_name, PrEW::GlobalVar::Chiral::eRpR, energy}
   };
   return infos_chi;
 }
@@ -699,14 +699,14 @@ void RKDistrSetup::add_asymm_par( const std::string & par_name ) {
       By construction those are limited to [-1,1] are expected to be 0.
       (They describe the deviation from the prediction.)
   **/
-  PREW::Fit::FitPar asymm_par { par_name, 0.0, 0.0001 };
+  PrEW::Fit::FitPar asymm_par { par_name, 0.0, 0.0001 };
   m_common_pars.push_back(asymm_par);
 }
 
 //------------------------------------------------------------------------------
 
 void RKDistrSetup::add_chi_xs_sum_coef(
-  const PREW::Data::DistrInfo & info_chi,
+  const PrEW::Data::DistrInfo & info_chi,
   int n_bins
 ) {
   /** Add the coefficients needed for the calculation of the two-cross-section
@@ -716,7 +716,7 @@ void RKDistrSetup::add_chi_xs_sum_coef(
   **/
   // Find the corresponding distribution
   auto info_cond = 
-    [info_chi](const PREW::Data::PredDistr &pred){
+    [info_chi](const PrEW::Data::PredDistr &pred){
       return pred.m_info==info_chi;
     };
   auto pred_it = 
@@ -735,7 +735,7 @@ void RKDistrSetup::add_chi_xs_sum_coef(
   // => All the ones that are involved in an asymmetry
   const auto & involved_chi_configs = 
     m_free_asymmetries.at(info_chi.m_distr_name);
-  std::vector<PREW::Data::DistrInfo> chi_infos {};
+  std::vector<PrEW::Data::DistrInfo> chi_infos {};
   for (const auto & chi_config: involved_chi_configs) {
     chi_infos.push_back({info_chi.m_distr_name, chi_config, info_chi.m_energy});
   }
@@ -757,7 +757,7 @@ void RKDistrSetup::add_chi_xs_sum_coef(
 //------------------------------------------------------------------------------
 
 void RKDistrSetup::add_unity_coef( 
-  const PREW::Data::DistrInfo & info,
+  const PrEW::Data::DistrInfo & info,
   int n_bins
 ) {
   /** Add a coefficient which is simply 1.0 for each bin of the distribution 
@@ -770,7 +770,7 @@ void RKDistrSetup::add_unity_coef(
 //------------------------------------------------------------------------------
 
 void RKDistrSetup::add_tau_removal_coef(
-  const PREW::Data::DistrInfo & info,
+  const PrEW::Data::DistrInfo & info,
   int n_bins
 ) {
   /** Add the coefficient that is needed to remove taus from the muon/tau 
@@ -786,7 +786,7 @@ void RKDistrSetup::add_tau_removal_coef(
 //------------------------------------------------------------------------------
 
 void RKDistrSetup::add_nu_and_tau_removal_coef(
-  const PREW::Data::DistrInfo & info,
+  const PrEW::Data::DistrInfo & info,
   int n_bins
 ) {
   /** Add the coefficient that is needed to remove neutrinos (2. & 3. gen) and 
@@ -806,7 +806,7 @@ void RKDistrSetup::add_nu_and_tau_removal_coef(
 //------------------------------------------------------------------------------
 
 void RKDistrSetup::add_lumi_fraction_coef(
-  const PREW::Data::DistrInfo & info_pol,
+  const PrEW::Data::DistrInfo & info_pol,
   int n_bins
 ) {
   /** Add the coefficient for the luminosity fraction of a given distribution 
@@ -826,10 +826,10 @@ void RKDistrSetup::add_lumi_fraction_coef(
 //------------------------------------------------------------------------------
 
 // TODO THIS IN ITS OWN NAMESPACE
-PREW::Data::FctLink RKDistrSetup::get_cTGC_fct_link() const {
+PrEW::Data::FctLink RKDistrSetup::get_cTGC_fct_link() const {
   /** Returns instruction that describes how cTGC parameterisation is built.
   **/
-  PREW::Data::FctLink cTGC_fct_link {
+  PrEW::Data::FctLink cTGC_fct_link {
     "Quadratic3DPolynomial_Coeff", // Name of function to use
     { // Names of parameters to use 
       "Delta-g1Z",
@@ -848,13 +848,13 @@ PREW::Data::FctLink RKDistrSetup::get_cTGC_fct_link() const {
 
 //------------------------------------------------------------------------------
 
-PREW::Data::FctLink RKDistrSetup::get_tau_removal_fct_link() const {
+PrEW::Data::FctLink RKDistrSetup::get_tau_removal_fct_link() const {
   /** Returns instruction that describes how tau removal is built.
   **/
   return { "ConstantCoef", {}, {"TauRemovalFactor"} } ;
 }
 
-PREW::Data::FctLink RKDistrSetup::get_nu_and_tau_removal_fct_link() const {
+PrEW::Data::FctLink RKDistrSetup::get_nu_and_tau_removal_fct_link() const {
   /** Returns instruction that describes how tau and neutrino removal is built.
   **/
   return { "ConstantCoef", {}, {"NuAndTauRemovalFactor"} };
@@ -862,13 +862,13 @@ PREW::Data::FctLink RKDistrSetup::get_nu_and_tau_removal_fct_link() const {
 
 //------------------------------------------------------------------------------
 
-PREW::Data::FctLink RKDistrSetup::get_chi_xs_fct_link(
-  const PREW::Data::DistrInfo & info_chi
+PrEW::Data::FctLink RKDistrSetup::get_chi_xs_fct_link(
+  const PrEW::Data::DistrInfo & info_chi
 ) const {
   /** Returns instruction that describes how function for free chiral cross 
       section is built.
   **/
-  PREW::Data::FctLink chi_xs_fct_link {
+  PrEW::Data::FctLink chi_xs_fct_link {
     "Constant", // Name of function to use
     { // Names of parameters to use 
       Names::ParNaming::chi_xs_par_name(
@@ -883,13 +883,13 @@ PREW::Data::FctLink RKDistrSetup::get_chi_xs_fct_link(
 
 //------------------------------------------------------------------------------
 
-PREW::Data::FctLink RKDistrSetup::get_total_chi_xs_fct_link( 
-  const PREW::Data::DistrInfo & info_chi
+PrEW::Data::FctLink RKDistrSetup::get_total_chi_xs_fct_link( 
+  const PrEW::Data::DistrInfo & info_chi
 ) const {
   /** Returns instruction that describes how function for free total chiral 
       cross section is built.
   **/
-  PREW::Data::FctLink total_chi_xs_fct_link {
+  PrEW::Data::FctLink total_chi_xs_fct_link {
     "Constant", // Name of function to use
     { // Names of parameters to use 
       Names::ParNaming::total_chi_xs_par_name( info_chi.m_distr_name )
@@ -899,8 +899,8 @@ PREW::Data::FctLink RKDistrSetup::get_total_chi_xs_fct_link(
   return total_chi_xs_fct_link;
 }
 
-PREW::Data::FctLink RKDistrSetup::get_asymm_fct_link( 
-    const PREW::Data::DistrInfo & info_chi
+PrEW::Data::FctLink RKDistrSetup::get_asymm_fct_link( 
+    const PrEW::Data::DistrInfo & info_chi
 ) const {
   /** Returns instruction that describes how function for free asymmetry is 
       build.
@@ -947,7 +947,7 @@ PREW::Data::FctLink RKDistrSetup::get_asymm_fct_link(
     return {};
   }
   
-  PREW::Data::FctLink asymm_fct_link {
+  PrEW::Data::FctLink asymm_fct_link {
     fct_name, // Name of function to use
     asymm_par_names, // Names of parameters to use 
     chi_xs_coef_names // Coefficients (chiral xs in order)
@@ -957,13 +957,13 @@ PREW::Data::FctLink RKDistrSetup::get_asymm_fct_link(
 
 //------------------------------------------------------------------------------
 
-PREW::Data::FctLink RKDistrSetup::get_lumi_fraction_fct_link(
-  const PREW::Data::DistrInfo & info_pol
+PrEW::Data::FctLink RKDistrSetup::get_lumi_fraction_fct_link(
+  const PrEW::Data::DistrInfo & info_pol
 ) const {
   /** Returns instruction that describes how function for luminosity fraction is
       built.
   **/
-  PREW::Data::FctLink lumi_fraction_fct_link {
+  PrEW::Data::FctLink lumi_fraction_fct_link {
     "LuminosityFraction", // Name of function to use
     { // Names of parameters to use 
       Names::ParNaming::lumi_name(info_pol.m_energy)

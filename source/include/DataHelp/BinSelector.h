@@ -18,15 +18,15 @@ namespace DataHelp {
     **/
 
     double m_cut_val {}; 
-    PREW::Fit::ParVec m_pars_for_cut {};
+    PrEW::Fit::ParVec m_pars_for_cut {};
 
     public:
       // Constructors
       BinSelector() {};
-      BinSelector(double cut_val, PREW::Fit::ParVec pars_for_cut);
+      BinSelector(double cut_val, PrEW::Fit::ParVec pars_for_cut);
       
       // Core functionality
-      void remove_bins(PREW::Fit::FitContainer * container) const;
+      void remove_bins(PrEW::Fit::FitContainer * container) const;
   };
   
 } // Namespace DataHelp

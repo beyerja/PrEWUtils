@@ -17,10 +17,10 @@ namespace ParNaming {
   // Map to get shorter naming convention for chiral config parameters
   static const std::map<std::string, std::string> chiral_naming_map = 
     {
-      {PREW::GlobalVar::Chiral::eLpR, "LR"},
-      {PREW::GlobalVar::Chiral::eRpL, "RL"},
-      {PREW::GlobalVar::Chiral::eLpL, "LL"},
-      {PREW::GlobalVar::Chiral::eRpR, "RR"}
+      {PrEW::GlobalVar::Chiral::eLpR, "LR"},
+      {PrEW::GlobalVar::Chiral::eRpL, "RL"},
+      {PrEW::GlobalVar::Chiral::eLpL, "LL"},
+      {PrEW::GlobalVar::Chiral::eRpR, "RR"}
     };
     
   std::string chi_xs_par_name ( 
