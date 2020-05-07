@@ -24,18 +24,18 @@ namespace Setups {
     std::vector<int> m_energies {};
     
     // Data from RK files
-    PREW::Data::PredDistrVec  m_input_distrs {};
-    PREW::Data::CoefDistrVec  m_input_coefs {};
+    PrEW::Data::PredDistrVec  m_input_distrs {};
+    PrEW::Data::CoefDistrVec  m_input_coefs {};
     
     // Data to be used in fit
-    PREW::Data::PredDistrVec  m_used_distrs {};
-    PREW::Data::CoefDistrVec  m_used_coefs {};
+    PrEW::Data::PredDistrVec  m_used_distrs {};
+    PrEW::Data::CoefDistrVec  m_used_coefs {};
     
-    PREW::Data::PolLinkVec    m_pol_links {};
-    PREW::Data::PredLinkVec   m_pred_links {};
+    PrEW::Data::PolLinkVec    m_pol_links {};
+    PrEW::Data::PredLinkVec   m_pred_links {};
     
-    PREW::Fit::ParVec         m_common_pars {};
-    std::map<int, PREW::Fit::ParVec> m_separate_pars {};
+    PrEW::Fit::ParVec         m_common_pars {};
+    std::map<int, PrEW::Fit::ParVec> m_separate_pars {};
     
     // Internal trackers
     std::vector<std::string> m_used_distr_names {};
@@ -129,10 +129,10 @@ namespace Setups {
       
       // Get result
       const std::vector<int> & get_energies() const;
-      PREW::Connect::DataConnector get_data_connector() const;
+      PrEW::Connect::DataConnector get_data_connector() const;
       
-      PREW::Fit::ParVec get_pars (int energy) const;
-      PREW::Fit::ParVec get_pars () const;
+      PrEW::Fit::ParVec get_pars (int energy) const;
+      PrEW::Fit::ParVec get_pars () const;
       
     protected:
       // Internal functions
@@ -142,21 +142,21 @@ namespace Setups {
       void read_input_files();
       
       // Internal helpers
-      PREW::Fit::FitPar & find_par_in_vec(
+      PrEW::Fit::FitPar & find_par_in_vec(
         const std::string & par_name,
-        PREW::Fit::ParVec & vec
+        PrEW::Fit::ParVec & vec
       );
-      PREW::Fit::FitPar & find_par(const std::string & name);
-      PREW::Fit::FitPar & find_par(const std::string & name, int energy);
+      PrEW::Fit::FitPar & find_par(const std::string & name);
+      PrEW::Fit::FitPar & find_par(const std::string & name, int energy);
       
       // Linking related
       void complete_distr_setup(const std::string & distr_name, int energy);
       void complete_chi_setup(
-        const PREW::Data::DistrInfo & info_chi, 
+        const PrEW::Data::DistrInfo & info_chi, 
         int n_bins
       );
       void complete_pol_setup(
-        const PREW::Data::DistrInfo & info_pol, 
+        const PrEW::Data::DistrInfo & info_pol, 
         int n_bins
       );
       
@@ -165,16 +165,16 @@ namespace Setups {
         int energy
       ) const;
       bool xs_chi_is_free(
-        const PREW::Data::DistrInfo & info_chi
+        const PrEW::Data::DistrInfo & info_chi
       ) const;
       bool total_chiral_xsection_is_free(const std::string & distr_name) const;
-      bool asymm_is_free( const PREW::Data::DistrInfo & info_chi ) const;
+      bool asymm_is_free( const PrEW::Data::DistrInfo & info_chi ) const;
       
-      std::vector<PREW::Data::DistrInfo> get_infos_pol(
+      std::vector<PrEW::Data::DistrInfo> get_infos_pol(
         const std::string & distr_name,
         int energy
       ) const;
-      std::vector<PREW::Data::DistrInfo> get_infos_chi(
+      std::vector<PrEW::Data::DistrInfo> get_infos_chi(
         const std::string & distr_name,
         int energy
       ) const;
@@ -182,34 +182,34 @@ namespace Setups {
       void add_asymm_par( const std::string & par_name );
       
       void add_chi_xs_sum_coef(
-        const PREW::Data::DistrInfo & info_chi,
+        const PrEW::Data::DistrInfo & info_chi,
         int n_bins
       );
-      void add_unity_coef(const PREW::Data::DistrInfo & info, int n_bins);
-      void add_tau_removal_coef(const PREW::Data::DistrInfo & info, int n_bins);
+      void add_unity_coef(const PrEW::Data::DistrInfo & info, int n_bins);
+      void add_tau_removal_coef(const PrEW::Data::DistrInfo & info, int n_bins);
       void add_nu_and_tau_removal_coef(
-        const PREW::Data::DistrInfo & info,
+        const PrEW::Data::DistrInfo & info,
         int n_bins
       );
       void add_lumi_fraction_coef(
-        const PREW::Data::DistrInfo & info_pol,
+        const PrEW::Data::DistrInfo & info_pol,
         int n_bins
       );
       
-      PREW::Data::FctLink get_cTGC_fct_link() const;
-      PREW::Data::FctLink get_tau_removal_fct_link() const;
-      PREW::Data::FctLink get_nu_and_tau_removal_fct_link() const;
-      PREW::Data::FctLink get_chi_xs_fct_link( 
-        const PREW::Data::DistrInfo & info_chi
+      PrEW::Data::FctLink get_cTGC_fct_link() const;
+      PrEW::Data::FctLink get_tau_removal_fct_link() const;
+      PrEW::Data::FctLink get_nu_and_tau_removal_fct_link() const;
+      PrEW::Data::FctLink get_chi_xs_fct_link( 
+        const PrEW::Data::DistrInfo & info_chi
       ) const;
-      PREW::Data::FctLink get_total_chi_xs_fct_link( 
-        const PREW::Data::DistrInfo & info_chi
+      PrEW::Data::FctLink get_total_chi_xs_fct_link( 
+        const PrEW::Data::DistrInfo & info_chi
       ) const;
-      PREW::Data::FctLink get_asymm_fct_link( 
-        const PREW::Data::DistrInfo & info_chi
+      PrEW::Data::FctLink get_asymm_fct_link( 
+        const PrEW::Data::DistrInfo & info_chi
       ) const;
-      PREW::Data::FctLink get_lumi_fraction_fct_link(
-        const PREW::Data::DistrInfo & info_pol
+      PrEW::Data::FctLink get_lumi_fraction_fct_link(
+        const PrEW::Data::DistrInfo & info_pol
       ) const;
   };
   

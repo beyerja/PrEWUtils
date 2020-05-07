@@ -14,7 +14,7 @@ namespace PredDistrHelp {
   **/
   
   double get_pred_sum (
-    const PREW::Data::PredDistr & pred, 
+    const PrEW::Data::PredDistr & pred, 
     const std::string & type
   );
   

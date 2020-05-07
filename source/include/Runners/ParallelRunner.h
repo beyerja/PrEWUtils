@@ -4,7 +4,7 @@
 #include <DataHelp/BinSelector.h>
 #include <Parallel/ThreadPool.h>
 
-// Includes from PREW
+// Includes from PrEW
 #include "Connect/DataConnector.h"
 #include "Fit/FitResult.h"
 #include "Fit/FitContainer.h"
@@ -23,10 +23,10 @@ namespace Runners {
     **/
     
     std::vector<int> m_energies;
-    std::map<int, PREW::Fit::ParVec> m_pars; // Parameters used at each energy
-    PREW::Connect::DataConnector m_data_connector;
-    PREW::ToyMeas::ToyGen m_toy_gen;
-    std::vector<PREW::Fit::MinuitFactory> m_minuit_factories;
+    std::map<int, PrEW::Fit::ParVec> m_pars; // Parameters used at each energy
+    PrEW::Connect::DataConnector m_data_connector;
+    PrEW::ToyMeas::ToyGen m_toy_gen;
+    std::vector<PrEW::Fit::MinuitFactory> m_minuit_factories;
     
     // Extra options
     bool m_use_selector {false};
@@ -43,34 +43,34 @@ namespace Runners {
       void set_bin_selector(DataHelp::BinSelector bin_selector);
       
       // Running toy fits
-      PREW::Fit::ResultVec run_toy_fits(
+      PrEW::Fit::ResultVec run_toy_fits(
         int energy,
         int n_toys, 
         linx::ThreadPool * pool 
       ) const;
       
-      PREW::Fit::ResultVec run_toy_fits(
+      PrEW::Fit::ResultVec run_toy_fits(
         int energy,
         int n_toys, 
         int n_threads
       ) const;
       
-      std::map<int,PREW::Fit::ResultVec> run_toy_fits(
+      std::map<int,PrEW::Fit::ResultVec> run_toy_fits(
         int n_toys, 
         int n_threads
       ) const;
       
       // Get info about current setup
-      const PREW::Connect::DataConnector & get_data_connector() const;
+      const PrEW::Connect::DataConnector & get_data_connector() const;
 
     protected:
       // Internal functions
       void set_minimizers( const std::string & minimizers_str );
       
-      PREW::Fit::FitResult single_fit_task(int energy) const;
-      PREW::Fit::FitResult single_minimization(
-        PREW::Fit::FitContainer * container_ptr, 
-        const PREW::Fit::MinuitFactory & minuit_factory
+      PrEW::Fit::FitResult single_fit_task(int energy) const;
+      PrEW::Fit::FitResult single_minimization(
+        PrEW::Fit::FitContainer * container_ptr, 
+        const PrEW::Fit::MinuitFactory & minuit_factory
       ) const;
 
   };

@@ -6,7 +6,7 @@ namespace Names {
 //------------------------------------------------------------------------------
 
 std::string CoefNaming::lumi_fraction_name ( 
-  const PREW::Data::DistrInfo & info_pol, 
+  const PrEW::Data::DistrInfo & info_pol, 
   std::string energy_unit
 ) {
   /** Convention for naming the luminosity fraction coefficient.

@@ -23,7 +23,7 @@ ParallelRunner<SetupClass>::ParallelRunner(
 ) : 
   m_energies(setup.get_energies()),
   m_data_connector(setup.get_data_connector()),
-  m_toy_gen(PREW::ToyMeas::ToyGen(m_data_connector,setup.get_pars()))
+  m_toy_gen(PrEW::ToyMeas::ToyGen(m_data_connector,setup.get_pars()))
 {
   /** Constructor extracts all relevant information from the setup.
       Minimizer string describes which Minuit2 minimizers to use.
@@ -59,7 +59,7 @@ void ParallelRunner<SetupClass>::set_bin_selector(
 //------------------------------------------------------------------------------
 
 template <class SetupClass>
-PREW::Fit::ResultVec ParallelRunner<SetupClass>::run_toy_fits(
+PrEW::Fit::ResultVec ParallelRunner<SetupClass>::run_toy_fits(
   int energy,
   int n_toys, 
   linx::ThreadPool * pool
@@ -77,8 +77,8 @@ PREW::Fit::ResultVec ParallelRunner<SetupClass>::run_toy_fits(
     return {};
   }
   
-  PREW::Fit::ResultVec results ( n_toys );
-  std::vector<std::future<PREW::Fit::FitResult>> result_futures ( n_toys );
+  PrEW::Fit::ResultVec results ( n_toys );
+  std::vector<std::future<PrEW::Fit::FitResult>> result_futures ( n_toys );
   
   spdlog::debug("ParallelRunner: Start registering jobs for each toy @ E={}.", energy);
   for (size_t i=0; i<results.size(); i++) {
@@ -101,7 +101,7 @@ PREW::Fit::ResultVec ParallelRunner<SetupClass>::run_toy_fits(
 //------------------------------------------------------------------------------
 
 template <class SetupClass>
-PREW::Fit::ResultVec ParallelRunner<SetupClass>::run_toy_fits(
+PrEW::Fit::ResultVec ParallelRunner<SetupClass>::run_toy_fits(
   int energy,
   int n_toys, 
   int n_threads
@@ -118,7 +118,7 @@ PREW::Fit::ResultVec ParallelRunner<SetupClass>::run_toy_fits(
 //------------------------------------------------------------------------------
 
 template <class SetupClass>
-std::map<int,PREW::Fit::ResultVec> ParallelRunner<SetupClass>::run_toy_fits(
+std::map<int,PrEW::Fit::ResultVec> ParallelRunner<SetupClass>::run_toy_fits(
   int n_toys, 
   int n_threads
 ) const {
@@ -127,7 +127,7 @@ std::map<int,PREW::Fit::ResultVec> ParallelRunner<SetupClass>::run_toy_fits(
       Returns the corresponding fit results for each energy.
   **/
   // Output maps energy to vector of fit results
-  std::map<int,PREW::Fit::ResultVec> results_map {};
+  std::map<int,PrEW::Fit::ResultVec> results_map {};
   
   spdlog::debug("ParallelRunner: Creating thread pool for all available energies.");
   linx::ThreadPool pool(n_threads);
@@ -144,7 +144,7 @@ std::map<int,PREW::Fit::ResultVec> ParallelRunner<SetupClass>::run_toy_fits(
 //------------------------------------------------------------------------------
 
 template <class SetupClass>
-const PREW::Connect::DataConnector & 
+const PrEW::Connect::DataConnector & 
 ParallelRunner<SetupClass>::get_data_connector() const {
   return m_data_connector;
 }
@@ -179,7 +179,7 @@ void ParallelRunner<SetupClass>::set_minimizers(
   
   for (const auto & min_info : min_infos) {
     m_minuit_factories.push_back(
-      PREW::Fit::MinuitFactory(
+      PrEW::Fit::MinuitFactory(
         min_info.m_type, 
         min_info.m_max_fcn_calls, 
         min_info.m_max_iters, 
@@ -192,7 +192,7 @@ void ParallelRunner<SetupClass>::set_minimizers(
 //------------------------------------------------------------------------------
 
 template <class SetupClass>
-PREW::Fit::FitResult 
+PrEW::Fit::FitResult 
 ParallelRunner<SetupClass>::single_fit_task(int energy) const {
   /** Single complete toy fit task.
       Creates a poisson fluctuated toy measurement, sets up the fit container,
@@ -201,17 +201,17 @@ ParallelRunner<SetupClass>::single_fit_task(int energy) const {
   spdlog::debug("ParallelRunner: Create toy measurement @ E={}.", energy);
   auto distrs = m_toy_gen.get_fluctuated_distrs(energy);
   auto pars = m_pars.at(energy);
-  PREW::ToyMeas::ParFlct::fluctuate_constrs(pars);
+  PrEW::ToyMeas::ParFlct::fluctuate_constrs(pars);
   
   spdlog::debug("ParallelRunner: Set up fit container @ E={}.", energy);
-  PREW::Fit::FitContainer container {};
+  PrEW::Fit::FitContainer container {};
   m_data_connector.fill_fit_container( distrs, pars, &container );
   
   // If requested remove bins according to selector
   if ( m_use_selector ) { m_bin_selector.remove_bins(&container); }
   
   // Minimize with all given minimizers, save only the results of the last one
-  PREW::Fit::FitResult final_result {};
+  PrEW::Fit::FitResult final_result {};
   for (const auto & minuit_factory: m_minuit_factories) {
     final_result = this->single_minimization(&container, minuit_factory);
   }
@@ -223,15 +223,15 @@ ParallelRunner<SetupClass>::single_fit_task(int energy) const {
 //------------------------------------------------------------------------------
 
 template <class SetupClass>
-PREW::Fit::FitResult ParallelRunner<SetupClass>::single_minimization(
-  PREW::Fit::FitContainer * container_ptr, 
-  const PREW::Fit::MinuitFactory & minuit_factory
+PrEW::Fit::FitResult ParallelRunner<SetupClass>::single_minimization(
+  PrEW::Fit::FitContainer * container_ptr, 
+  const PrEW::Fit::MinuitFactory & minuit_factory
 ) const {
   /** Perform chi^2 minimization on a given fit container with the given
       Minuit2 minimizer.
   **/
   spdlog::debug("ParallelRunner: Create minimizer.");
-  PREW::Fit::ChiSqMinimizer chi_sq_minimizer (container_ptr, minuit_factory);
+  PrEW::Fit::ChiSqMinimizer chi_sq_minimizer (container_ptr, minuit_factory);
   
   spdlog::debug("ParallelRunner: Start minimization.");
   chi_sq_minimizer.minimize();

@@ -8,12 +8,12 @@ namespace DataHelp {
 //------------------------------------------------------------------------------
 // Constructors
 
-BinSelector::BinSelector( double cut_val, PREW::Fit::ParVec pars_for_cut ) :
+BinSelector::BinSelector( double cut_val, PrEW::Fit::ParVec pars_for_cut ) :
   m_cut_val(cut_val), m_pars_for_cut(pars_for_cut) {}
 
 //------------------------------------------------------------------------------
 
-void BinSelector::remove_bins( PREW::Fit::FitContainer * container ) const {
+void BinSelector::remove_bins( PrEW::Fit::FitContainer * container ) const {
   /** Function manipulates FitContainer, it removes all bins whose prediction
       is below the cutoff value for the set of parameters chosen for the cutoff.
       Preserves the parameters of the fitcontainer.
