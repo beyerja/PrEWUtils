@@ -7,6 +7,7 @@
 // Includes from PrEW
 #include "CppUtils/Str.h"
 #include "Fit/ChiSqMinimizer.h"
+#include "Fit/PoissonNLLMinimizer.h"
 #include "ToyMeas/ParFlct.h"
 
 #include "spdlog/spdlog.h"
@@ -19,29 +20,35 @@ namespace Runners {
 template <class SetupClass>
 ParallelRunner<SetupClass>::ParallelRunner(
   const SetupClass & setup,
-  const std::string & minimizers
+  const std::string & minuit_minimizers,
+  const std::string & prew_minimizer
 ) : 
   m_energies(setup.get_energies()),
   m_data_connector(setup.get_data_connector()),
-  m_toy_gen(PrEW::ToyMeas::ToyGen(m_data_connector,setup.get_pars()))
+  m_toy_gen(PrEW::ToyMeas::ToyGen(m_data_connector,setup.get_pars())),
+  m_prew_minimizer(prew_minimizer)
 {
   /** Constructor extracts all relevant information from the setup.
-      Minimizer string describes which Minuit2 minimizers to use.
-      Multiple minimizers can be given separated by a "->".
-      Allowed minimizers are:
+      Minuit/PrEW minimizer string describes which Minuit2/PrEW minimizers to 
+      use.
+      Allowed PrEW minimizers are:
+        ChiSquared
+        PoissonNLL
+      Allowed Minuit2 minimizers are:
         Migrad
         Simplex
         Combined
         Scan
         Fumili
         MigradBFGS
+      Multiple Minuit2 minimizers can be given separated by a "->".
   **/
   // Extract the parameters which should be fitted for a given energy
   for (const auto & energy: m_energies) {
     m_pars[energy] = setup.get_pars(energy);
   }
-  // Set up minimizers
-  this->set_minimizers(minimizers);
+  // Set up Minuit2 minimizers
+  this->set_minimizers(minuit_minimizers);
 } 
 
 //------------------------------------------------------------------------------
@@ -227,17 +234,38 @@ PrEW::Fit::FitResult ParallelRunner<SetupClass>::single_minimization(
   PrEW::Fit::FitContainer * container_ptr, 
   const PrEW::Fit::MinuitFactory & minuit_factory
 ) const {
-  /** Perform chi^2 minimization on a given fit container with the given
-      Minuit2 minimizer.
+  /** Start a minimisation on the given fit container with the given Minuit2 
+      minimizer and the PrEW minimizer that was requested at initialisation.
+      Return the result.
   **/
-  spdlog::debug("ParallelRunner: Create minimizer.");
-  PrEW::Fit::ChiSqMinimizer chi_sq_minimizer (container_ptr, minuit_factory);
+  
+  spdlog::debug("ParallelRunner: Create minimizer: {}.", m_prew_minimizer);
+  if ( m_prew_minimizer == "ChiSquared" ) {
+    auto minimizer = PrEW::Fit::ChiSqMinimizer(container_ptr, minuit_factory);
+    return this->single_minimization( &minimizer );
+  } else if ( m_prew_minimizer == "PoissonNLL" ) {
+    auto minimizer = PrEW::Fit::PoissonNLLMinimizer(container_ptr, minuit_factory);
+    return this->single_minimization( &minimizer );
+  } else {
+    throw std::invalid_argument(("Unknown PrEW minimizer type " + m_prew_minimizer).c_str());
+  }
+}
+
+//------------------------------------------------------------------------------
+
+template <class SetupClass> 
+template <class MinimizerClass>
+PrEW::Fit::FitResult ParallelRunner<SetupClass>::single_minimization(
+  MinimizerClass * minimizer
+) const {
+  /** Perform a minimisation task on the given minimizer and return the result.
+  **/
   
   spdlog::debug("ParallelRunner: Start minimization.");
-  chi_sq_minimizer.minimize();
+  minimizer->minimize();
   
   spdlog::debug("ParallelRunner: Minimization finished.");
-  return chi_sq_minimizer.get_result();
+  return minimizer->get_result();
 }
 
 //------------------------------------------------------------------------------
