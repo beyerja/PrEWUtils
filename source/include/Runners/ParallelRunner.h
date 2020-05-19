@@ -27,6 +27,7 @@ namespace Runners {
     PrEW::Connect::DataConnector m_data_connector;
     PrEW::ToyMeas::ToyGen m_toy_gen;
     std::vector<PrEW::Fit::MinuitFactory> m_minuit_factories;
+    std::string m_prew_minimizer;
     
     // Extra options
     bool m_use_selector {false};
@@ -36,7 +37,8 @@ namespace Runners {
       // Constructors
       ParallelRunner(
         const SetupClass & setup,
-        const std::string & minimizers
+        const std::string & minuit_minimizers,
+        const std::string & prew_minimizer
       );
       
       // Set extra options
@@ -68,9 +70,13 @@ namespace Runners {
       void set_minimizers( const std::string & minimizers_str );
       
       PrEW::Fit::FitResult single_fit_task(int energy) const;
+      
       PrEW::Fit::FitResult single_minimization(
         PrEW::Fit::FitContainer * container_ptr, 
         const PrEW::Fit::MinuitFactory & minuit_factory
+      ) const;
+      template<class MinimizerClass> PrEW::Fit::FitResult single_minimization(
+        MinimizerClass * Minimizer
       ) const;
 
   };
