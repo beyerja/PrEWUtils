@@ -50,8 +50,12 @@ void RKDistrSetup::add_energy(int energy) {
 
 //------------------------------------------------------------------------------
 
-void RKDistrSetup::use_distr(const std::string & distr_name) {
-  /** Select a distribution to be used in the fit.
+void RKDistrSetup::use_distr(
+  const std::string & distr_name,
+  const std::string & mode
+) {
+  /** Select a distribution to be used in the fit and the mode in which it is
+      to be used.
       Options:
        4f semileptonic:
         "singleWplussemileptonic" 
@@ -73,8 +77,11 @@ void RKDistrSetup::use_distr(const std::string & distr_name) {
     From additional files:
       "WW_semilep_MuAntiNu"
       "WW_semilep_AntiMuNu"
+    Possible modes:
+      "differential"
+      "summed"
   **/
-  m_used_distr_names.push_back(distr_name);
+  m_used_distr_modes[distr_name] = mode;
 }
 
 //------------------------------------------------------------------------------
@@ -305,7 +312,7 @@ void RKDistrSetup::complete_setup() {
   this->read_input_files();
   
   for (int & energy : m_energies) {    
-    for (const auto & distr_name : m_used_distr_names) {    
+    for (const auto & [distr_name, _] : m_used_distr_modes) {    
       this->complete_distr_setup( distr_name, energy );
     } 
   }
@@ -389,10 +396,7 @@ void RKDistrSetup::complete_distr_setup(
       the given distribution at the given energy.
   **/
   // Mark distribution as used and determine binning of the distributions
-  auto distrs = 
-    PrEW::Data::DistrUtils::subvec_energy_and_name(
-      m_input_distrs, energy, distr_name
-    );
+  auto distrs = this->determine_distrs(distr_name, energy);
   m_used_distrs.insert( m_used_distrs.end(), distrs.begin(), distrs.end() );
   int n_bins = distrs.at(0).m_bin_centers.size();
   
@@ -415,6 +419,43 @@ void RKDistrSetup::complete_distr_setup(
   for ( const auto & info_pol: this->get_infos_pol( distr_name, energy ) ) {
     this->complete_pol_setup( info_pol, n_bins );
   }
+}
+
+//------------------------------------------------------------------------------
+
+PrEW::Data::PredDistrVec RKDistrSetup::determine_distrs(
+  const std::string & distr_name, int energy
+) {
+  /** Determine and return the predicted distributions with given name at given 
+      energy.
+      Depends on the mode in which the distribution is supposed to be used.
+  **/
+  
+  auto distrs = 
+    PrEW::Data::DistrUtils::subvec_energy_and_name(
+      m_input_distrs, energy, distr_name
+    );
+    
+  // Look in which mode the distribution is requested and change if needed
+  std::string mode = m_used_distr_modes.at(distr_name);
+  if ( mode == "differential") {
+    // Nothing to do, already differential
+  } else if ( mode == "summed" ) {
+    // Request use of summed up / combined bins (e.g. total xs)
+    // -> Transform each distr. into it's total xs only
+    PrEW::Data::PredDistrVec rebinned_distrs {};
+    for (const auto & distr : distrs) {
+      rebinned_distrs.push_back( PrEW::Data::DistrUtils::combine_bins(distr) );
+    }
+    distrs = rebinned_distrs;
+  } else {
+    spdlog::warn(
+      "Unknown distribution mode {} for distribution {}.\n"
+      "-> Will use default differential distribution.", distr_name, mode
+    );
+  }
+  
+  return distrs;
 }
 
 //------------------------------------------------------------------------------
