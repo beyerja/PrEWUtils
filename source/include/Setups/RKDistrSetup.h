@@ -38,7 +38,7 @@ namespace Setups {
     std::map<int, PrEW::Fit::ParVec> m_separate_pars {};
     
     // Internal trackers
-    std::vector<std::string> m_used_distr_names {};
+    std::map<std::string, std::string> m_used_distr_modes {};
     std::map<int, std::map<std::string,double>> m_lumi_fractions {};
     
     bool m_use_cTGCs {};
@@ -62,7 +62,10 @@ namespace Setups {
       void add_energy(int energy);
     
       // Functions determining how setup looks
-      void use_distr(const std::string & distr_name);
+      void use_distr(
+        const std::string & distr_name, 
+        const std::string & mode="differential" // TODO TODO TODO IMPLEMENT INCLUDING OPTION FOR COMBINED XS
+      );
     
       void set_lumi(int energy, double val, double ini_unc);
       
@@ -151,6 +154,11 @@ namespace Setups {
       
       // Linking related
       void complete_distr_setup(const std::string & distr_name, int energy);
+      
+      PrEW::Data::PredDistrVec determine_distrs(
+        const std::string & distr_name, int energy
+      );
+      
       void complete_chi_setup(
         const PrEW::Data::DistrInfo & info_chi, 
         int n_bins
