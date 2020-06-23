@@ -1,6 +1,8 @@
 #ifndef LIB_RKDISTRSETUP_H
 #define LIB_RKDISTRSETUP_H 1
 
+#include <SetupHelp/ChiAsymmInfo.h>
+
 // Includes from PrEW
 #include "Connect/DataConnector.h"
 #include "Data/CoefDistr.h"
@@ -50,7 +52,7 @@ namespace Setups {
     
     // Tracking which total chiral cross sections and asymmetries are free
     std::vector<std::string> m_free_total_xs_chi {};
-    std::map<std::string,std::vector<std::string>> m_free_asymmetries {};
+    std::vector<SetupHelp::ChiAsymmInfo> m_free_chi_asymms {};
     
     public: 
       // Constructor
@@ -104,23 +106,19 @@ namespace Setups {
       );
       
       void free_total_chiral_xsection( const std::string & distr_name );
-      void free_asymmetry( 
-        const std::string & distr_name,
-        const std::string & chiral_config_0,
-        const std::string & chiral_config_1
-      );
-      void free_asymmetry( 
+      void free_asymmetry_2xs( 
         const std::string & distr_name,
         const std::string & chiral_config_0,
         const std::string & chiral_config_1,
-        const std::string & chiral_config_2
+        const std::string & asym_name = "default"
       );
-      void free_asymmetry( 
+      void free_asymmetry_3xs( 
         const std::string & distr_name,
         const std::string & chiral_config_0,
         const std::string & chiral_config_1,
         const std::string & chiral_config_2,
-        const std::string & chiral_config_3
+        const std::string & asymI_name = "default",
+        const std::string & asymII_name = "default"
       );
       
       void set_WW_mu_only();
@@ -151,9 +149,11 @@ namespace Setups {
       );
       PrEW::Fit::FitPar & find_par(const std::string & name);
       PrEW::Fit::FitPar & find_par(const std::string & name, int energy);
+      PrEW::Data::PredLink & find_pred_link(const PrEW::Data::DistrInfo & info);
       
       // Linking related
       void complete_distr_setup(const std::string & distr_name, int energy);
+      void complete_chi_asymm_setup();
       
       PrEW::Data::PredDistrVec determine_distrs(
         const std::string & distr_name, int energy
@@ -176,7 +176,6 @@ namespace Setups {
         const PrEW::Data::DistrInfo & info_chi
       ) const;
       bool total_chiral_xsection_is_free(const std::string & distr_name) const;
-      bool asymm_is_free( const PrEW::Data::DistrInfo & info_chi ) const;
       
       std::vector<PrEW::Data::DistrInfo> get_infos_pol(
         const std::string & distr_name,
@@ -189,9 +188,10 @@ namespace Setups {
       
       void add_asymm_par( const std::string & par_name );
       
-      void add_chi_xs_sum_coef(
-        const PrEW::Data::DistrInfo & info_chi,
-        int n_bins
+      void add_chi_xs_sum_coefs(
+        const std::string & distr_name,
+        int energy,
+        const std::vector<std::string> & chiral_configs
       );
       void add_unity_coef(const PrEW::Data::DistrInfo & info, int n_bins);
       void add_tau_removal_coef(const PrEW::Data::DistrInfo & info, int n_bins);
@@ -211,9 +211,6 @@ namespace Setups {
         const PrEW::Data::DistrInfo & info_chi
       ) const;
       PrEW::Data::FctLink get_total_chi_xs_fct_link( 
-        const PrEW::Data::DistrInfo & info_chi
-      ) const;
-      PrEW::Data::FctLink get_asymm_fct_link( 
         const PrEW::Data::DistrInfo & info_chi
       ) const;
       PrEW::Data::FctLink get_lumi_fraction_fct_link(

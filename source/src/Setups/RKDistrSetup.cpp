@@ -13,6 +13,9 @@
 
 #include "spdlog/spdlog.h"
 
+// Standard library
+#include <set>
+
 namespace PrEWUtils {
 namespace Setups {
 
@@ -235,62 +238,55 @@ void RKDistrSetup::free_total_chiral_xsection(const std::string & distr_name) {
 
 //------------------------------------------------------------------------------
 
-void RKDistrSetup::free_asymmetry( 
+void RKDistrSetup::free_asymmetry_2xs( 
   const std::string & distr_name,
   const std::string & chiral_config_0,
-  const std::string & chiral_config_1
+  const std::string & chiral_config_1,
+  const std::string & asym_name
 ) {
   /** Set the chiral asymmetry between the two given chiral configurations of 
       the distributions as free parameter.
       Asymmetry definition: A = (xs0 - xs1) / (xs0 + xs1)
       where xs is the sum of all bins of the distribution at the given config.
       Free parameter: DeltaA ( A_meas = A_pred + DeltaA )
+      The parameter name can be set if wanted.
   **/
-  this->add_asymm_par( Names::ParNaming::asymm_par_name(distr_name) );
-  m_free_asymmetries[distr_name] = {chiral_config_0, chiral_config_1};
+  std::vector<std::string> chiral_configs = {chiral_config_0, chiral_config_1};
+  std::vector<std::string> par_names = {};
+  if ( asym_name != "default" ) { par_names = {asym_name}; }
+  
+  m_free_chi_asymms.push_back(
+    SetupHelp::ChiAsymmInfo(distr_name, chiral_configs, par_names));
 }
 
-void RKDistrSetup::free_asymmetry( 
-  const std::string & distr_name,
-  const std::string & chiral_config_0,
-  const std::string & chiral_config_1,
-  const std::string & chiral_config_2
-) {
-  /** Set the chiral asymmetries between the three given chiral configurations 
-      of the distribution as free parameters.
-      Asymmetry definition:       
-        A_I   = sqrt(2) * (xs0 - 1/2 * (xs1 + xs2)) / (xs0 + xs1 + xs2)
-        A_II  = sqrt(3/2) * (xs1 - xs2) / (xs0 + xs1 + xs2)
-        where xs is the sum of all bins of the distribution at the given config.
-      Free parameters: DeltaA_i ( A_meas = A_pred + DeltaA )
-  **/
-  this->add_asymm_par( Names::ParNaming::asymm_par_name(distr_name, 1) );
-  this->add_asymm_par( Names::ParNaming::asymm_par_name(distr_name, 2) );
-  m_free_asymmetries[distr_name] = 
-    {chiral_config_0, chiral_config_1, chiral_config_2};
-}
-
-void RKDistrSetup::free_asymmetry( 
+void RKDistrSetup::free_asymmetry_3xs( 
   const std::string & distr_name,
   const std::string & chiral_config_0,
   const std::string & chiral_config_1,
   const std::string & chiral_config_2,
-  const std::string & chiral_config_3
+  const std::string & asymI_name,
+  const std::string & asymII_name
 ) {
-  /** Set the chiral asymmetries between the four given chiral configurations of 
-      the distribution as free parameters.
-      Asymmetry definitions: 
-        A_I   = (xs0 - xs1 + xs2 - xs3) / (xs0 + xs1 + xs2 + xs3)
-        A_II  = (xs0 + xs1 - xs2 - xs3) / (xs0 + xs1 + xs2 + xs3)
-        A_III = (xs0 - xs1 - xs2 + xs3) / (xs0 + xs1 + xs2 + xs3)
+  /** Set the chiral asymmetries between the three given chiral configurations 
+      of the distribution as free parameters.
+      Asymmetry definition:       
+        A_I   = (xs0 + xs1 - xs2) / (xs0 + xs1 + xs2)
+        A_II  = (xs0 - xs1 - xs2) / (xs0 + xs1 + xs2)
         where xs is the sum of all bins of the distribution at the given config.
-      Free parameter: DeltaA_i ( A_meas = A_pred + DeltaA )
+      Free parameters: DeltaA_i ( A_meas = A_pred + DeltaA )
+      The parameter name can be set if wanted.
   **/
-  this->add_asymm_par( Names::ParNaming::asymm_par_name(distr_name, 1) );
-  this->add_asymm_par( Names::ParNaming::asymm_par_name(distr_name, 2) );
-  this->add_asymm_par( Names::ParNaming::asymm_par_name(distr_name, 3) );
-  m_free_asymmetries[distr_name] = 
-    {chiral_config_0, chiral_config_1, chiral_config_2, chiral_config_3};
+  std::vector<std::string> chiral_configs = 
+    {chiral_config_0, chiral_config_1, chiral_config_2};
+    
+  // If pars not all default use the given names
+  std::vector<std::string> par_names = {};
+  if ( (asymI_name != "default") || (asymII_name != "default") ) { 
+    par_names = {asymI_name, asymII_name}; 
+  }
+  
+  m_free_chi_asymms.push_back(
+    SetupHelp::ChiAsymmInfo(distr_name, chiral_configs, par_names));
 }
 
 //------------------------------------------------------------------------------
@@ -316,6 +312,8 @@ void RKDistrSetup::complete_setup() {
       this->complete_distr_setup( distr_name, energy );
     } 
   }
+  
+  this->complete_chi_asymm_setup();
   
   // For debugging:
   spdlog::debug("RKDistrSetup: Printing results of completed setup");
@@ -385,6 +383,53 @@ PrEW::Fit::ParVec RKDistrSetup::get_pars () const {
 //------------------------------------------------------------------------------
 // Internal functions
 //------------------------------------------------------------------------------
+
+void RKDistrSetup::complete_chi_asymm_setup() {
+  /** Complete setting up the chiral asymmetries.
+  **/
+  
+  // Map to collect all involved chiral cross sections, needed to set up coefs
+  std::map<std::string, std::set<std::string>> chiral_distrs {};
+  
+  for ( const auto & chi_asymm: m_free_chi_asymms ) {
+    const auto & distr_name = chi_asymm.get_distr_name();
+    
+    // Collect the needed parameters and function links
+    for ( const auto &par: chi_asymm.get_pars() ) {
+      // Only add the parameter if it doesn't already exist
+      auto cond = [par](const PrEW::Fit::FitPar &_par){return _par==par;};
+      auto par_it = 
+        std::find_if(m_common_pars.begin(), m_common_pars.end(), cond);
+      if ( par_it == m_common_pars.end() ) {
+        m_common_pars.push_back(par);
+      }
+    } // Asymmetry parameter loop
+    
+    for ( const auto & chiral_config: chi_asymm.get_chiral_configs() ) {
+      // Add the relevant function links
+      for ( int energy: m_energies ) {
+        auto & pred_link = 
+          this->find_pred_link( {distr_name, chiral_config, energy} );
+        pred_link.m_fcts_links_sig.push_back(
+          chi_asymm.get_fct_link(energy, chiral_config));
+      } // Energies loop
+      
+      // Mark the chiral configs of this distribution so that their total xs is 
+      // calculated and setup as coefficient
+      chiral_distrs[distr_name].insert(chiral_config);
+    } // Chiral config loop
+    
+  } // Asymmetries loop
+  
+  // Find and set up all the chiral cross sections sums needed
+  for ( int energy: m_energies ) {
+    for ( const auto &[distr_name, chiral_configs] : chiral_distrs ) {
+      std::vector<std::string> chiral_config_vec (
+        chiral_configs.begin(), chiral_configs.end() );
+      this->add_chi_xs_sum_coefs( distr_name, energy, chiral_config_vec );
+    } // Distribution loop
+  } // Energy loop
+}
 
 //------------------------------------------------------------------------------
 
@@ -503,14 +548,6 @@ void RKDistrSetup::complete_chi_setup(
   if ( this->total_chiral_xsection_is_free( info_chi.m_distr_name ) ) {
     sig_fct_links.push_back( this->get_total_chi_xs_fct_link( info_chi ) );
   }
-  
-  // Add asymmetry functions if requested
-  if ( this->asymm_is_free( info_chi ) ) {
-    // If this distribution is involved in any asymmetry, calculate its total
-    // chiral cross section and add it as a coefficient for asymmetry calculation.
-    this->add_chi_xs_sum_coef( info_chi, n_bins );
-    sig_fct_links.push_back( this->get_asymm_fct_link( info_chi ) );
-  }
 
   PrEW::Data::PredLink link_chi { info_chi, sig_fct_links, bkg_fct_links };
   m_pred_links.push_back(link_chi);
@@ -600,6 +637,26 @@ PrEW::Fit::FitPar & RKDistrSetup::find_par(const std::string & name, int energy)
 
 //------------------------------------------------------------------------------
 
+PrEW::Data::PredLink & RKDistrSetup::find_pred_link(
+  const PrEW::Data::DistrInfo & info
+) {
+  /** Find function link to given distribution and return (non-const) reference.  
+  **/
+  auto info_cond =
+    [info](const PrEW::Data::PredLink &link){return link.m_info==info;};
+  auto link_it = 
+    std::find_if(m_pred_links.begin(), m_pred_links.end(), info_cond);
+  
+  // If link doesn't exist yet, create it (with empty funciton instructions)
+  if ( link_it == m_pred_links.end() ) {
+    m_pred_links.push_back( {info, {}, {}} );
+  }
+  
+  return *link_it;
+}
+
+//------------------------------------------------------------------------------
+
 bool RKDistrSetup::has_cTGCs_available(
   const std::string & distr_name,
   int energy 
@@ -671,32 +728,6 @@ bool RKDistrSetup::total_chiral_xsection_is_free(
   return free;
 }
 
-bool RKDistrSetup::asymm_is_free(
-  const PrEW::Data::DistrInfo & info_chi
-) const {
-  /** Check if the given chiral distribution is involved in a free asymmetry 
-      parameter.
-  **/
-  bool free = false;
-  // See if distribution has a chiral asymmetry set as free
-  const auto free_asymm_it = m_free_asymmetries.find(info_chi.m_distr_name);
-  if ( free_asymm_it != m_free_asymmetries.end() ) {
-    // Found chiral asymmetry
-    const auto & free_asymm = (*free_asymm_it).second;
-    
-    // See if the given chiral state is affected
-    if (
-      std::find(free_asymm.begin(), free_asymm.end(), info_chi.m_pol_config) 
-      != free_asymm.end()
-    ) {
-      // Found this chiral config => Affected!    
-      free = true;
-    }
-  }
-  
-  return free;
-}
-
 //------------------------------------------------------------------------------
 
 std::vector<PrEW::Data::DistrInfo> RKDistrSetup::get_infos_pol(
@@ -746,52 +777,49 @@ void RKDistrSetup::add_asymm_par( const std::string & par_name ) {
 
 //------------------------------------------------------------------------------
 
-void RKDistrSetup::add_chi_xs_sum_coef(
-  const PrEW::Data::DistrInfo & info_chi,
-  int n_bins
+void RKDistrSetup::add_chi_xs_sum_coefs(
+  const std::string & distr_name,
+  int energy,
+  const std::vector<std::string> & chiral_configs
 ) {
-  /** Add the coefficients needed for the calculation of the two-cross-section
-      chiral asymmetry.
-      These are the chiral cross sections summed over all bins of the affected
-      chiral configs of the distribution.
+  /** For the given chiral configurations add the total cross section of the 
+      chiral distributions as coefficient and make it available for each of the 
+      configurations.
   **/
-  // Find the corresponding distribution
-  auto info_cond = 
-    [info_chi](const PrEW::Data::PredDistr &pred){
-      return pred.m_info==info_chi;
-    };
-  auto pred_it = 
-    std::find_if(m_used_distrs.begin(), m_used_distrs.end(), info_cond);
-    
-  // Get the chiral signal cross section, which is needed to determine the 
-  // asymmetry of the signal
-  double xs_chi = 0; 
-  if ( pred_it != m_used_distrs.end() ) {
-    xs_chi += DataHelp::PredDistrHelp::get_pred_sum(*pred_it, "signal");
-  } else {
-    spdlog::warn("RKDistrSetup: Distribution not found {}", info_chi.m_distr_name);
-  }
   
-  // Figure out which chiral states need this coefficient
-  // => All the ones that are involved in an asymmetry
-  const auto & involved_chi_configs = 
-    m_free_asymmetries.at(info_chi.m_distr_name);
-  std::vector<PrEW::Data::DistrInfo> chi_infos {};
-  for (const auto & chi_config: involved_chi_configs) {
-    chi_infos.push_back({info_chi.m_distr_name, chi_config, info_chi.m_energy});
-  }
-
-  // Create coefficient for all distributions that need it
-  for ( const auto & other_chi_info: chi_infos ) {
-    m_used_coefs.push_back(
-      { // Name is determined by chiral config whose sum it is
-        Names::CoefNaming::chi_xs_coef_name( 
-          info_chi.m_distr_name, info_chi.m_pol_config 
-        ), 
-        other_chi_info, // Other chiral config which might need this coefficient
-        std::vector<double>(n_bins,xs_chi)
-      }
-    );
+  for (const auto &chiral_config: chiral_configs) {
+    PrEW::Data::DistrInfo info = {distr_name, chiral_config, energy};
+    
+    // Find the corresponding distribution
+    auto info_cond = 
+      [info](const PrEW::Data::PredDistr &pred){
+        return pred.m_info==info; };
+    auto pred_it = 
+      std::find_if(m_used_distrs.begin(), m_used_distrs.end(), info_cond);
+    
+    // Get the chiral signal cross section, which is needed to determine the 
+    // asymmetry of the signal
+    double xs_chi = 0; 
+    if ( pred_it != m_used_distrs.end() ) {
+      xs_chi += DataHelp::PredDistrHelp::get_pred_sum(*pred_it, "signal");
+    } else {
+      spdlog::warn("RKDistrSetup: Distribution not found {} {} {}", 
+                   distr_name, chiral_config, energy);
+    }
+    
+    // Number of bins
+    int n_bins = pred_it->m_sig_distr.size();
+    
+    // Create coefficient for all distributions that need it
+    for ( const auto & other_chiral_config: chiral_configs ) {
+      m_used_coefs.push_back(
+        { // Name is determined by chiral config whose sum it is
+          Names::CoefNaming::chi_xs_coef_name( info ), 
+          {distr_name, other_chiral_config, energy}, // Other chiral config
+          std::vector<double>(n_bins,xs_chi)
+        }
+      );
+    }
   }
 }
 
@@ -938,62 +966,6 @@ PrEW::Data::FctLink RKDistrSetup::get_total_chi_xs_fct_link(
     {} // No coefficients
   };
   return total_chi_xs_fct_link;
-}
-
-PrEW::Data::FctLink RKDistrSetup::get_asymm_fct_link( 
-    const PrEW::Data::DistrInfo & info_chi
-) const {
-  /** Returns instruction that describes how function for free asymmetry is 
-      build.
-  **/
-  const auto & distr_name = info_chi.m_distr_name;
-  const auto & chiral_config = info_chi.m_pol_config;
-  const auto & affected_xs_chi = m_free_asymmetries.at(distr_name);
-  int n_chi_xs = affected_xs_chi.size();
-  
-  // Determine which function to use
-  // -> Depends on place of chiral cross section in asymmetry
-  auto xs_chi_it = 
-    std::find(affected_xs_chi.begin(), affected_xs_chi.end(), chiral_config);
-  int xs_chi_index = std::distance(affected_xs_chi.begin(), xs_chi_it);
-  std::string fct_name = 
-    "AsymmFactor" + std::to_string(xs_chi_index) + "_" 
-    + std::to_string(n_chi_xs) + "allowed";
-  
-  // Determine the names of the coefficients for the chiral cross sections
-  std::vector<std::string> chi_xs_coef_names {};
-  for ( const auto & chiral_config: m_free_asymmetries.at(distr_name) ) {
-    chi_xs_coef_names.push_back(
-      Names::CoefNaming::chi_xs_coef_name(distr_name, chiral_config)
-    );
-  }
-  
-  // Determine names of the asymmetry parameters to use in the function
-  std::vector<std::string> asymm_par_names {};
-  if ( n_chi_xs == 2 ) { 
-    asymm_par_names = { Names::ParNaming::asymm_par_name(distr_name) };
-  } else if ( n_chi_xs == 3 ) {
-    asymm_par_names = { 
-      Names::ParNaming::asymm_par_name(distr_name, 1),
-      Names::ParNaming::asymm_par_name(distr_name, 2)
-    };
-  } else if ( n_chi_xs == 4 ) {
-    asymm_par_names = { 
-      Names::ParNaming::asymm_par_name(distr_name, 1),
-      Names::ParNaming::asymm_par_name(distr_name, 2),
-      Names::ParNaming::asymm_par_name(distr_name, 3)
-    };
-  } else {
-    spdlog::warn("RKDistrSetup: Unknown number of chiral xs in asymmtry: {}", n_chi_xs);
-    return {};
-  }
-  
-  PrEW::Data::FctLink asymm_fct_link {
-    fct_name, // Name of function to use
-    asymm_par_names, // Names of parameters to use 
-    chi_xs_coef_names // Coefficients (chiral xs in order)
-  };
-  return asymm_fct_link;
 }
 
 //------------------------------------------------------------------------------
