@@ -766,17 +766,6 @@ std::vector<PrEW::Data::DistrInfo> RKDistrSetup::get_infos_chi(
 
 //------------------------------------------------------------------------------
 
-void RKDistrSetup::add_asymm_par( const std::string & par_name ) {
-  /** Add an asymmetry parameter to the list of common parameters.
-      By construction those are limited to [-1,1] are expected to be 0.
-      (They describe the deviation from the prediction.)
-  **/
-  PrEW::Fit::FitPar asymm_par { par_name, 0.0, 0.0001 };
-  m_common_pars.push_back(asymm_par);
-}
-
-//------------------------------------------------------------------------------
-
 void RKDistrSetup::add_chi_xs_sum_coefs(
   const std::string & distr_name,
   int energy,

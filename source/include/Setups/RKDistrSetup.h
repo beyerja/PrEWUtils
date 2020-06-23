@@ -186,8 +186,6 @@ namespace Setups {
         int energy
       ) const;
       
-      void add_asymm_par( const std::string & par_name );
-      
       void add_chi_xs_sum_coefs(
         const std::string & distr_name,
         int energy,
