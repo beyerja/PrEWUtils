@@ -151,6 +151,10 @@ namespace Setups {
       PrEW::Fit::FitPar & find_par(const std::string & name, int energy);
       PrEW::Data::PredLink & find_pred_link(const PrEW::Data::DistrInfo & info);
       
+      void add_par(const PrEW::Fit::FitPar &par);
+      void add_par(const PrEW::Fit::FitPar &par, int energy);
+      void add_coef(const PrEW::Data::CoefDistr &coef);
+      
       // Linking related
       void complete_distr_setup(const std::string & distr_name, int energy);
       void complete_chi_asymm_setup();

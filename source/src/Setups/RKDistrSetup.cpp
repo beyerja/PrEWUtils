@@ -108,7 +108,7 @@ void RKDistrSetup::set_lumi(
     return;
   }
   
-  m_separate_pars[energy].push_back( {name, val, ini_unc} );
+  this->add_par({name, val, ini_unc}, energy);
 }
 
 //------------------------------------------------------------------------------
@@ -123,7 +123,6 @@ void RKDistrSetup::add_pol(
       Automatically sets restriction that pol can only be between -1 and +1.
   **/
   PrEW::Fit::FitPar new_pol {name, val, ini_unc};
-  m_separate_pars[energy].push_back(new_pol);
 }
 
 //------------------------------------------------------------------------------
@@ -199,9 +198,9 @@ void RKDistrSetup::activate_cTGCs() {
       All will be set to zero here.
   **/
   m_use_cTGCs = true;
-  m_common_pars.push_back( {"Delta-g1Z", 0.0, 0.0001} );
-  m_common_pars.push_back( {"Delta-kappa_gamma", 0.0, 0.0001} );
-  m_common_pars.push_back( {"Delta-lambda_gamma", 0.0, 0.0001} );
+  this->add_par({"Delta-g1Z", 0.0, 0.0001});
+  this->add_par({"Delta-kappa_gamma", 0.0, 0.0001});
+  this->add_par({"Delta-lambda_gamma", 0.0, 0.0001});
 }
 
 //------------------------------------------------------------------------------
@@ -215,9 +214,8 @@ void RKDistrSetup::free_chiral_xsection(
       Will lead to an extra fit parameter which is a factor applied to each bin
       of the chiral differential distribution.
   **/  
-  m_common_pars.push_back( 
-    { Names::ParNaming::chi_xs_par_name(distr_name,chiral_config), 1.0, 0.0001 } 
-  );
+  this->add_par(
+    {Names::ParNaming::chi_xs_par_name(distr_name,chiral_config), 1.0, 0.0001});
   m_free_xs_chi[distr_name].push_back(chiral_config);
 }
 
@@ -232,7 +230,7 @@ void RKDistrSetup::free_total_chiral_xsection(const std::string & distr_name) {
   PrEW::Fit::FitPar scaling_par {
     Names::ParNaming::total_chi_xs_par_name(distr_name), 1.0, 0.001
   };
-  m_common_pars.push_back(scaling_par);
+  this->add_par(scaling_par);
   m_free_total_xs_chi.push_back(distr_name);
 }
 
@@ -395,15 +393,7 @@ void RKDistrSetup::complete_chi_asymm_setup() {
     const auto & distr_name = chi_asymm.get_distr_name();
     
     // Collect the needed parameters and function links
-    for ( const auto &par: chi_asymm.get_pars() ) {
-      // Only add the parameter if it doesn't already exist
-      auto cond = [par](const PrEW::Fit::FitPar &_par){return _par==par;};
-      auto par_it = 
-        std::find_if(m_common_pars.begin(), m_common_pars.end(), cond);
-      if ( par_it == m_common_pars.end() ) {
-        m_common_pars.push_back(par);
-      }
-    } // Asymmetry parameter loop
+    for ( const auto &par: chi_asymm.get_pars() ) { this->add_par(par); }
     
     for ( const auto & chiral_config: chi_asymm.get_chiral_configs() ) {
       // Add the relevant function links
@@ -657,6 +647,47 @@ PrEW::Data::PredLink & RKDistrSetup::find_pred_link(
 
 //------------------------------------------------------------------------------
 
+void RKDistrSetup::add_par(const PrEW::Fit::FitPar &par) {
+  /** Add a parameter to the common parameters of this setup while first 
+      checking that it does not already exist.
+   **/
+  auto cond = [par](const PrEW::Fit::FitPar &_par){return _par==par;};
+  auto par_it = 
+    std::find_if(m_common_pars.begin(), m_common_pars.end(), cond);
+  if ( par_it == m_common_pars.end() ) {
+    m_common_pars.push_back(par);
+  }
+}
+
+void RKDistrSetup::add_par(const PrEW::Fit::FitPar &par, int energy) {
+  /** Add a parameter to the separate parameters of this setup while first 
+      checking that it does not already exist.
+   **/
+  auto cond = [par](const PrEW::Fit::FitPar &_par){return _par==par;};
+  auto par_it = std::find_if(m_separate_pars[energy].begin(), 
+                             m_separate_pars[energy].end(), cond);
+  if ( par_it == m_separate_pars[energy].end() ) {
+    m_separate_pars[energy].push_back(par);
+  }
+}
+
+void RKDistrSetup::add_coef(const PrEW::Data::CoefDistr &coef) {
+  /** Add a coefficient to this setup while first checking that it does not 
+      already exist.
+   **/
+  auto cond = 
+    [coef](const PrEW::Data::CoefDistr &_coef){
+      return (_coef.m_coef_name==coef.m_coef_name) && 
+             (_coef.m_info==coef.m_info);};
+  auto coef_it = 
+   std::find_if(m_used_coefs.begin(), m_used_coefs.end(), cond);
+  if ( coef_it == m_used_coefs.end() ) {
+   m_used_coefs.push_back(coef);
+  }
+}
+
+//------------------------------------------------------------------------------
+
 bool RKDistrSetup::has_cTGCs_available(
   const std::string & distr_name,
   int energy 
@@ -801,13 +832,13 @@ void RKDistrSetup::add_chi_xs_sum_coefs(
     
     // Create coefficient for all distributions that need it
     for ( const auto & other_chiral_config: chiral_configs ) {
-      m_used_coefs.push_back(
+      PrEW::Data::CoefDistr new_coef 
         { // Name is determined by chiral config whose sum it is
           Names::CoefNaming::chi_xs_coef_name( info ), 
           {distr_name, other_chiral_config, energy}, // Other chiral config
           std::vector<double>(n_bins,xs_chi)
-        }
-      );
+        };
+      this->add_coef(new_coef);
     }
   }
 }
@@ -822,7 +853,7 @@ void RKDistrSetup::add_unity_coef(
       described by the given info.
   **/
   // TODO ADD CONVENTION FOR "ONE" PARAMETER TO NAMES NAMESPACE
-  m_used_coefs.push_back({"One", info, std::vector<double>(n_bins,1.0)});
+  this->add_coef({"One", info, std::vector<double>(n_bins,1.0)});
 }
 
 //------------------------------------------------------------------------------
@@ -836,9 +867,8 @@ void RKDistrSetup::add_tau_removal_coef(
   **/
   // TODO COEFFICIENT CONVENTIONS IN NAMES NAMESPACE!!!
   double tau_removal = 0.5; // Remove tau from tau/muon mixture
-  m_used_coefs.push_back(
-    {"TauRemovalFactor", info, std::vector<double>(n_bins,tau_removal)}
-  );
+  this->add_coef(
+    {"TauRemovalFactor", info, std::vector<double>(n_bins,tau_removal)});
 }
 
 //------------------------------------------------------------------------------
@@ -852,13 +882,8 @@ void RKDistrSetup::add_nu_and_tau_removal_coef(
   **/
   // TODO COEFFICIENT CONVENTIONS IN NAMES NAMESPACE!!!
   double nu_and_tau_removal = 0.168;
-  m_used_coefs.push_back(
-    {
-      "NuAndTauRemovalFactor", 
-      info, 
-      std::vector<double>(n_bins,nu_and_tau_removal)
-    }
-  );
+  this->add_coef({"NuAndTauRemovalFactor", info, 
+                  std::vector<double>(n_bins,nu_and_tau_removal)});
 }
 
 //------------------------------------------------------------------------------
@@ -870,15 +895,12 @@ void RKDistrSetup::add_lumi_fraction_coef(
   /** Add the coefficient for the luminosity fraction of a given distribution 
       (for each bin).
   **/
-  m_used_coefs.push_back(
-    { Names::CoefNaming::lumi_fraction_name(info_pol), 
-      info_pol,
+  this->add_coef(
+    { Names::CoefNaming::lumi_fraction_name(info_pol), info_pol,
       std::vector<double>( 
         n_bins, 
         m_lumi_fractions.at(info_pol.m_energy).at(info_pol.m_pol_config) 
-      )
-    }
-  );
+      ) });
 }
 
 //------------------------------------------------------------------------------
