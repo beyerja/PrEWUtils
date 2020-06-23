@@ -18,10 +18,7 @@ namespace CoefNaming {
     std::string energy_unit="GeV"
   );
   
-  std::string chi_xs_coef_name (   
-    const std::string & distr_name,
-    const std::string & chiral_config
-  );
+  std::string chi_xs_coef_name ( const PrEW::Data::DistrInfo & info_chi );
   
 } // Namespace CoefNaming
   
