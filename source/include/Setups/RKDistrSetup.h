@@ -1,6 +1,7 @@
 #ifndef LIB_RKDISTRSETUP_H
 #define LIB_RKDISTRSETUP_H 1
 
+#include <SetupHelp/AfInfo.h>
 #include <SetupHelp/ChiAsymmInfo.h>
 
 // Includes from PrEW
@@ -47,12 +48,11 @@ namespace Setups {
     bool m_WW_mu_only {};
     bool m_ZZ_mu_only {};
     
-    // Map tracking which chiral cross sections should be free for each distr
+    // Internal tracking for which parameters should be free
     std::map<std::string,std::vector<std::string>> m_free_xs_chi {};
-    
-    // Tracking which total chiral cross sections and asymmetries are free
     std::vector<std::string> m_free_total_xs_chi {};
     std::vector<SetupHelp::ChiAsymmInfo> m_free_chi_asymms {};
+    std::vector<SetupHelp::AfInfo> m_free_Af {};
     
     public: 
       // Constructor
@@ -120,7 +120,10 @@ namespace Setups {
         const std::string & asymI_name = "default",
         const std::string & asymII_name = "default"
       );
-      
+      void
+      free_2f_final_state_asymmetry(const std::string &distr_name,
+                                    const std::string &asym_name = "default");
+
       void set_WW_mu_only();
       void set_ZZ_mu_only();
       
@@ -159,6 +162,7 @@ namespace Setups {
       // Linking related
       void complete_distr_setup(const std::string & distr_name, int energy);
       void complete_chi_asymm_setup();
+      void complete_Af_setup();
       
       PrEW::Data::PredDistrVec determine_distrs(
         const std::string & distr_name, int energy
@@ -191,11 +195,11 @@ namespace Setups {
         int energy
       ) const;
       
-      void add_chi_xs_sum_coefs(
-        const std::string & distr_name,
-        int energy,
-        const std::vector<std::string> & chiral_configs
-      );
+      void add_chi_distr_coefs(const PrEW::Data::DistrInfo & info, 
+                               const std::vector<std::string> & chiral_configs, 
+                               const std::string &type);
+      void add_costheta_index_coef(const PrEW::Data::DistrInfo & info, 
+                                   int costheta_index);
       void add_unity_coef(const PrEW::Data::DistrInfo & info, int n_bins);
       void add_tau_removal_coef(const PrEW::Data::DistrInfo & info, int n_bins);
       void add_nu_and_tau_removal_coef(

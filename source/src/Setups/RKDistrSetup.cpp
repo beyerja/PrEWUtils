@@ -123,6 +123,7 @@ void RKDistrSetup::add_pol(
       Automatically sets restriction that pol can only be between -1 and +1.
   **/
   PrEW::Fit::FitPar new_pol {name, val, ini_unc};
+  this->add_par(new_pol, energy);
 }
 
 //------------------------------------------------------------------------------
@@ -288,6 +289,18 @@ void RKDistrSetup::free_asymmetry_3xs(
 }
 
 //------------------------------------------------------------------------------
+
+void 
+RKDistrSetup::free_2f_final_state_asymmetry(const std::string &distr_name,
+                                            const std::string &asym_name) {
+  /** Set the final state asymmetry Af of a 2-fermion distribution as free 
+      parameter.
+      Af = [ (c_L^f)^2 - (c_R^f)^2 ] / [ (c_L^f)^2 + (c_R^f)^2 ]
+  **/
+  m_free_Af.push_back(SetupHelp::AfInfo(distr_name, asym_name));
+}
+
+//------------------------------------------------------------------------------
 // Markers that should be set to get correct WW and ZZ cross sections
 
 void RKDistrSetup::set_WW_mu_only() { m_WW_mu_only = true; }
@@ -312,6 +325,7 @@ void RKDistrSetup::complete_setup() {
   }
   
   this->complete_chi_asymm_setup();
+  this->complete_Af_setup();
   
   // For debugging:
   spdlog::debug("RKDistrSetup: Printing results of completed setup");
@@ -416,7 +430,66 @@ void RKDistrSetup::complete_chi_asymm_setup() {
     for ( const auto &[distr_name, chiral_configs] : chiral_distrs ) {
       std::vector<std::string> chiral_config_vec (
         chiral_configs.begin(), chiral_configs.end() );
-      this->add_chi_xs_sum_coefs( distr_name, energy, chiral_config_vec );
+      for (const auto &chiral_config: chiral_configs) {
+        PrEW::Data::DistrInfo config_info {distr_name,chiral_config,energy};
+        this->add_chi_distr_coefs( config_info, chiral_config_vec, "sum");
+      }
+    } // Distribution loop
+  } // Energy loop
+}
+
+//------------------------------------------------------------------------------
+
+void RKDistrSetup::complete_Af_setup() {
+  /** Complete setting up the 2-fermion final state asymmetries.
+  **/
+
+  // Map to collect all involved chiral cross sections, needed to set up coefs
+  std::map<std::string, std::set<std::string>> chiral_distrs {};
+
+  for ( const auto & asymm: m_free_Af ) {
+    const auto & distr_name = asymm.get_distr_name();
+    const auto & LR_config = asymm.get_LR_config();
+    const auto & RL_config = asymm.get_RL_config();
+
+    // Collect the needed parameters and function links
+    auto par = asymm.get_par();
+    // Only add the parameter if it doesn't already exist
+    auto cond = [par](const PrEW::Fit::FitPar &_par){return _par==par;};
+    auto par_it = std::find_if(m_common_pars.begin(),m_common_pars.end(),cond);
+    if ( par_it == m_common_pars.end() ) { m_common_pars.push_back(par); }
+
+    // Add the relevant function links
+    for ( int energy: m_energies ) {
+      auto & pred_link_LR = this->find_pred_link({distr_name,LR_config,energy});
+      pred_link_LR.m_fcts_links_sig.push_back(
+        asymm.get_fct_link(energy, LR_config));
+
+      auto & pred_link_RL = this->find_pred_link({distr_name,RL_config,energy});
+      pred_link_RL.m_fcts_links_sig.push_back(
+        asymm.get_fct_link(energy, RL_config));
+    } // Energies loop
+
+    // Mark the chiral configs of this distribution so it's coefs are collected
+    chiral_distrs[distr_name].insert(LR_config);
+    chiral_distrs[distr_name].insert(RL_config);
+  } // Asymmetries loop
+
+  // Find and set up all the coefficients for all cross sections
+  // ADD FUNCTION TO ADD PAR/COEF THAT CHECK IF IT ALREADY EXISTS
+  // ADD ALL THREE COEFFICIENTS
+  for ( int energy: m_energies ) {
+    for ( const auto &[distr_name, chiral_configs] : chiral_distrs ) {
+      std::vector<std::string> chiral_config_vec (chiral_configs.begin(), 
+                                                  chiral_configs.end());
+                                                  
+      for (const auto &chiral_config: chiral_configs) {
+        PrEW::Data::DistrInfo config_info {distr_name,chiral_config,energy};
+        
+        this->add_chi_distr_coefs(config_info, chiral_config_vec, "sum");
+        this->add_chi_distr_coefs(config_info, {chiral_config}, "differential");
+        this->add_costheta_index_coef({distr_name, chiral_config, energy}, 0);
+      }
     } // Distribution loop
   } // Energy loop
 }
@@ -818,50 +891,57 @@ std::vector<PrEW::Data::DistrInfo> RKDistrSetup::get_infos_chi(
 
 //------------------------------------------------------------------------------
 
-void RKDistrSetup::add_chi_xs_sum_coefs(
-  const std::string & distr_name,
-  int energy,
-  const std::vector<std::string> & chiral_configs
-) {
-  /** For the given chiral configurations add the total cross section of the 
-      chiral distributions as coefficient and make it available for each of the 
-      configurations.
-  **/
+void RKDistrSetup::add_chi_distr_coefs(
+  const PrEW::Data::DistrInfo & info, 
+  const std::vector<std::string> & chiral_configs, const std::string &type) {
+  /** Get the summed or differential chiral cross section for the distribution
+      with the given info and add a coefficient with it for the other given 
+      chiral configurations.
+      Type: "sum" or "differential"
+   **/
   
-  for (const auto &chiral_config: chiral_configs) {
-    PrEW::Data::DistrInfo info = {distr_name, chiral_config, energy};
-    
-    // Find the corresponding distribution
-    auto info_cond = 
-      [info](const PrEW::Data::PredDistr &pred){
-        return pred.m_info==info; };
-    auto pred_it = 
-      std::find_if(m_used_distrs.begin(), m_used_distrs.end(), info_cond);
-    
+  // Find the corresponding distribution
+  auto pred = this->find_pred_distr(info);
+  int n_bins = pred.m_sig_distr.size();
+
+  // Determine coefficient content
+  std::string coef_name = "";
+  std::vector<double> coef_vec {};
+
+  if ( type == "sum" ) {
     // Get the chiral signal cross section, which is needed to determine the 
     // asymmetry of the signal
-    double xs_chi = 0; 
-    if ( pred_it != m_used_distrs.end() ) {
-      xs_chi += DataHelp::PredDistrHelp::get_pred_sum(*pred_it, "signal");
-    } else {
-      spdlog::warn("RKDistrSetup: Distribution not found {} {} {}", 
-                   distr_name, chiral_config, energy);
-    }
-    
-    // Number of bins
-    int n_bins = pred_it->m_sig_distr.size();
-    
-    // Create coefficient for all distributions that need it
-    for ( const auto & other_chiral_config: chiral_configs ) {
-      PrEW::Data::CoefDistr new_coef 
-        { // Name is determined by chiral config whose sum it is
-          Names::CoefNaming::chi_xs_coef_name( info ), 
-          {distr_name, other_chiral_config, energy}, // Other chiral config
-          std::vector<double>(n_bins,xs_chi)
-        };
-      this->add_coef(new_coef);
-    }
+    coef_name = Names::CoefNaming::chi_xs_coef_name( info );
+    double xs_chi = DataHelp::PredDistrHelp::get_pred_sum(pred, "signal");
+    coef_vec = std::vector<double>(n_bins,xs_chi);
+  } else if ( type == "differential" ) {
+    // Differential coefficient only created for its own distribution
+    coef_name = Names::CoefNaming::chi_distr_coef_name(info, "signal"),
+    coef_vec = DataHelp::PredDistrHelp::pred_to_coef(pred, "signal");
+  } else {
+    throw std::invalid_argument(
+      ("RKDistrSetup: Invalid distr coef type requested: " + type).c_str());
   }
+  
+  // Create coefficient for all distributions that need it
+  for ( const auto & other_config: chiral_configs ) {
+    PrEW::Data::DistrInfo new_info {info.m_distr_name, other_config, 
+                                    info.m_energy};
+    PrEW::Data::CoefDistr new_coef { coef_name, new_info, coef_vec };
+    this->add_coef(new_coef);
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void RKDistrSetup::add_costheta_index_coef(const PrEW::Data::DistrInfo & info,
+                                           int costheta_index) {
+  /** Add a coefficient describing which index in the observables vector for 
+      this distribution describes the cos(Theta) coordinate.
+   **/                                            
+   int n_bins = this->find_pred_distr(info).m_bin_centers.size();
+   this->add_coef({Names::CoefNaming::costheta_index_coef_name(), info, 
+                   std::vector<double>(n_bins,costheta_index)});
 }
 
 //------------------------------------------------------------------------------
