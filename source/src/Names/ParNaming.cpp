@@ -61,6 +61,15 @@ std::string ParNaming::asymm_par_name (
 
 //------------------------------------------------------------------------------
 
+std::string ParNaming::Af_par_name ( const std::string & distr_name ) {
+  /** Convention on how to name the (Delta-)Af parameter for a 2-fermion
+      distribution.
+  **/
+  return "Af_" + distr_name;
+}
+
+//------------------------------------------------------------------------------
+
 std::string ParNaming::lumi_name ( int energy, std::string energy_unit ) {
   /** Convention for naming the luminosity parameter.
   **/
