@@ -2,6 +2,7 @@
 #define LIB_PREDDISTRHELP_H 1
 
 // Includes from PrEW
+#include <Data/CoefDistr.h>
 #include "Data/PredDistr.h"
 
 #include <string>
@@ -17,6 +18,9 @@ namespace PredDistrHelp {
     const PrEW::Data::PredDistr & pred, 
     const std::string & type
   );
+  
+  std::vector<double> pred_to_coef(const PrEW::Data::PredDistr &pred,
+                                   const std::string &type = "signal");
   
 }
   

@@ -18,11 +18,11 @@ namespace CoefNaming {
     std::string energy_unit="GeV"
   );
   
-  std::string chi_xs_coef_name (   
-    const std::string & distr_name,
-    const std::string & chiral_config
-  );
+  std::string chi_xs_coef_name ( const PrEW::Data::DistrInfo & info_chi );
+  std::string chi_distr_coef_name ( const PrEW::Data::DistrInfo & info_chi, 
+                                    const std::string type="signal" );
   
+  std::string costheta_index_coef_name();
 } // Namespace CoefNaming
   
 } // Namespace Names
