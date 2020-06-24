@@ -647,6 +647,27 @@ PrEW::Data::PredLink & RKDistrSetup::find_pred_link(
 
 //------------------------------------------------------------------------------
 
+PrEW::Data::PredDistr &
+RKDistrSetup::find_pred_distr(const PrEW::Data::DistrInfo & info){
+  /** Find PredDistr in the used distributions and return (non-const) reference 
+      to it.
+  **/
+  auto info_cond =
+    [info](const PrEW::Data::PredDistr &pred){return pred.m_info==info;};
+  auto pred_it = 
+    std::find_if(m_used_distrs.begin(), m_used_distrs.end(), info_cond);
+  
+  if ( pred_it == m_used_distrs.end() ) {
+    throw std::invalid_argument(("RKDistrSetup: Couldn't find PredDistr: " +
+                                info.m_distr_name + " " + info.m_pol_config + 
+                                " " + std::to_string(info.m_energy)).c_str());
+  }
+  
+  return *pred_it;
+}
+
+//------------------------------------------------------------------------------
+
 void RKDistrSetup::add_par(const PrEW::Fit::FitPar &par) {
   /** Add a parameter to the common parameters of this setup while first 
       checking that it does not already exist.
