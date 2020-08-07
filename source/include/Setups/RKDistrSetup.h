@@ -3,6 +3,7 @@
 
 #include <SetupHelp/AfInfo.h>
 #include <SetupHelp/ChiAsymmInfo.h>
+#include <SetupHelp/TGCInfo.h>
 
 // Includes from PrEW
 #include "Connect/DataConnector.h"
@@ -44,7 +45,6 @@ namespace Setups {
     std::map<std::string, std::string> m_used_distr_modes {};
     std::map<int, std::map<std::string,double>> m_lumi_fractions {};
     
-    bool m_use_cTGCs {};
     bool m_WW_mu_only {};
     bool m_ZZ_mu_only {};
     
@@ -53,6 +53,9 @@ namespace Setups {
     std::vector<std::string> m_free_total_xs_chi {};
     std::vector<SetupHelp::ChiAsymmInfo> m_free_chi_asymms {};
     std::vector<SetupHelp::AfInfo> m_free_Af {};
+    
+    bool m_use_cTGCs {};
+    SetupHelp::TGCInfo m_TGC_info;
     
     public: 
       // Constructor
@@ -98,7 +101,7 @@ namespace Setups {
       void fix_lumi(int energy);
       void fix_pol(const std::string & name, int energy);
       
-      void activate_cTGCs();
+      void activate_cTGCs(const std::string & mode = "linear");
       
       void free_chiral_xsection( 
         const std::string & distr_name,
@@ -157,6 +160,8 @@ namespace Setups {
       
       void add_par(const PrEW::Fit::FitPar &par);
       void add_par(const PrEW::Fit::FitPar &par, int energy);
+      void add_pars(const PrEW::Fit::ParVec &pars);
+      void add_pars(const PrEW::Fit::ParVec &pars, int energy);
       void add_coef(const PrEW::Data::CoefDistr &coef);
       
       // Linking related
@@ -211,7 +216,6 @@ namespace Setups {
         int n_bins
       );
       
-      PrEW::Data::FctLink get_cTGC_fct_link() const;
       PrEW::Data::FctLink get_tau_removal_fct_link() const;
       PrEW::Data::FctLink get_nu_and_tau_removal_fct_link() const;
       PrEW::Data::FctLink get_chi_xs_fct_link( 

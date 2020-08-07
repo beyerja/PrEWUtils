@@ -193,15 +193,15 @@ void RKDistrSetup::add_pol_config(
 
 //------------------------------------------------------------------------------
 
-void RKDistrSetup::activate_cTGCs() { 
+void RKDistrSetup::activate_cTGCs(const std::string & mode) { 
   /** Activate usage of anomalous cTGCs.
       Currently available: the three cTGCs in LEP parameterisation.
       All will be set to zero here.
+      Two parametrisation modes are available: "linear" and "quadratic".
   **/
   m_use_cTGCs = true;
-  this->add_par({"Delta-g1Z", 0.0, 0.0001});
-  this->add_par({"Delta-kappa_gamma", 0.0, 0.0001});
-  this->add_par({"Delta-lambda_gamma", 0.0, 0.0001});
+  m_TGC_info = SetupHelp::TGCInfo(mode);
+  this->add_pars( m_TGC_info.get_pars() );
 }
 
 //------------------------------------------------------------------------------
@@ -598,7 +598,7 @@ void RKDistrSetup::complete_chi_setup(
     // Coefficient that is simply 1.0, needed for TGC parameterisation
     this->add_unity_coef( info_chi, n_bins);
     // Function that parametrises effect of cTGCs
-    sig_fct_links.push_back( this->get_cTGC_fct_link() );
+    sig_fct_links.push_back( m_TGC_info.get_fct_link() );
   }
   
   // If chiral cross section is supposed to be free, add cross section parameter
@@ -763,6 +763,18 @@ void RKDistrSetup::add_par(const PrEW::Fit::FitPar &par, int energy) {
   if ( par_it == m_separate_pars[energy].end() ) {
     m_separate_pars[energy].push_back(par);
   }
+}
+
+void RKDistrSetup::add_pars(const PrEW::Fit::ParVec &pars) {
+  /** Add a parameters to the common parameters.
+   **/
+ for ( auto & par : pars ) { this->add_par(par); }
+}
+
+void RKDistrSetup::add_pars(const PrEW::Fit::ParVec &pars, int energy) {
+  /** Add a parameters to the separate parameters.
+   **/
+  for ( auto & par : pars ) { this->add_par(par, energy); }
 }
 
 void RKDistrSetup::add_coef(const PrEW::Data::CoefDistr &coef) {
@@ -1002,29 +1014,6 @@ void RKDistrSetup::add_lumi_fraction_coef(
         n_bins, 
         m_lumi_fractions.at(info_pol.m_energy).at(info_pol.m_pol_config) 
       ) });
-}
-
-//------------------------------------------------------------------------------
-
-// TODO THIS IN ITS OWN NAMESPACE
-PrEW::Data::FctLink RKDistrSetup::get_cTGC_fct_link() const {
-  /** Returns instruction that describes how cTGC parameterisation is built.
-  **/
-  PrEW::Data::FctLink cTGC_fct_link {
-    "Quadratic3DPolynomial_Coeff", // Name of function to use
-    { // Names of parameters to use 
-      "Delta-g1Z",
-      "Delta-kappa_gamma",
-      "Delta-lambda_gamma"
-    },  
-    { // Names of coefficients to use 
-      "One", 
-      "TGCA", "TGCB", "TGCC", // linear
-      "TGCD", "TGCE", "TGCF", // quadratic
-      "TGCG", "TGCH", "TGCI"  // mixed
-    }
-  };
-  return cTGC_fct_link;
 }
 
 //------------------------------------------------------------------------------
