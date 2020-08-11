@@ -52,5 +52,14 @@ std::string CoefNaming::costheta_index_coef_name(){
 
 //------------------------------------------------------------------------------
 
+std::string CoefNaming::bin_width_coef_name(){
+  /** Name for the coefficient that describes the width of the bins of the 
+      distribution.
+   **/
+  return "BinWidth";
+}
+
+//------------------------------------------------------------------------------
+
 } // Namespace Names
 } // Namespace PrEWUtils

@@ -23,6 +23,8 @@ namespace CoefNaming {
                                     const std::string type="signal" );
   
   std::string costheta_index_coef_name();
+  
+  std::string bin_width_coef_name();
 } // Namespace CoefNaming
   
 } // Namespace Names

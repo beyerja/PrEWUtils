@@ -1,6 +1,7 @@
 #ifndef LIB_RKDISTRSETUP_H
 #define LIB_RKDISTRSETUP_H 1
 
+#include <SetupHelp/AccBoxInfo.h>
 #include <SetupHelp/AfInfo.h>
 #include <SetupHelp/ChiAsymmInfo.h>
 #include <SetupHelp/TGCInfo.h>
@@ -57,6 +58,8 @@ namespace Setups {
     bool m_use_cTGCs {};
     SetupHelp::TGCInfo m_TGC_info;
     
+    std::vector<SetupHelp::AccBoxInfo> m_acc_boxes {};
+    
     public: 
       // Constructor
       RKDistrSetup();
@@ -69,7 +72,7 @@ namespace Setups {
       // Functions determining how setup looks
       void use_distr(
         const std::string & distr_name, 
-        const std::string & mode="differential" // TODO TODO TODO IMPLEMENT INCLUDING OPTION FOR COMBINED XS
+        const std::string & mode="differential"
       );
     
       void set_lumi(int energy, double val, double ini_unc);
@@ -126,11 +129,17 @@ namespace Setups {
       void
       free_2f_final_state_asymmetry(const std::string &distr_name,
                                     const std::string &asym_name = "default");
-
+      
       void set_WW_mu_only();
       void set_ZZ_mu_only();
       
-
+      void create_costheta_acceptance_box(const std::string & box_name, 
+                                          double center, double width);
+      void use_costheta_acceptance_box(const std::string & box_name, 
+                                       const std::string & distr_name,
+                                       double bin_width = 0.5,
+                                       int costheta_index = 0);
+      
       // Finishing the setup
       void complete_setup();
       
@@ -203,8 +212,8 @@ namespace Setups {
       void add_chi_distr_coefs(const PrEW::Data::DistrInfo & info, 
                                const std::vector<std::string> & chiral_configs, 
                                const std::string &type);
-      void add_costheta_index_coef(const PrEW::Data::DistrInfo & info, 
-                                   int costheta_index);
+      void add_coord_index_coef(const PrEW::Data::DistrInfo & info,
+                                const std::string & coef_name, int coord_index);
       void add_unity_coef(const PrEW::Data::DistrInfo & info, int n_bins);
       void add_tau_removal_coef(const PrEW::Data::DistrInfo & info, int n_bins);
       void add_nu_and_tau_removal_coef(
@@ -215,6 +224,7 @@ namespace Setups {
         const PrEW::Data::DistrInfo & info_pol,
         int n_bins
       );
+      void add_box_acc_coefs(const PrEW::Data::DistrInfo & info_chi);
       
       PrEW::Data::FctLink get_tau_removal_fct_link() const;
       PrEW::Data::FctLink get_nu_and_tau_removal_fct_link() const;
@@ -226,6 +236,9 @@ namespace Setups {
       ) const;
       PrEW::Data::FctLink get_lumi_fraction_fct_link(
         const PrEW::Data::DistrInfo & info_pol
+      ) const;
+      PrEW::Data::FctLinkVec get_box_acc_fct_links( 
+        const PrEW::Data::DistrInfo & info_chi
       ) const;
   };
   
