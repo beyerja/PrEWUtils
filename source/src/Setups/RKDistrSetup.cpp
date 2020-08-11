@@ -488,7 +488,9 @@ void RKDistrSetup::complete_Af_setup() {
         
         this->add_chi_distr_coefs(config_info, chiral_config_vec, "sum");
         this->add_chi_distr_coefs(config_info, {chiral_config}, "differential");
-        this->add_costheta_index_coef({distr_name, chiral_config, energy}, 0);
+        this->add_coord_index_coef(
+            {distr_name, chiral_config, energy},
+            Names::CoefNaming::costheta_index_coef_name(), 0);
       }
     } // Distribution loop
   } // Energy loop
@@ -946,14 +948,14 @@ void RKDistrSetup::add_chi_distr_coefs(
 
 //------------------------------------------------------------------------------
 
-void RKDistrSetup::add_costheta_index_coef(const PrEW::Data::DistrInfo & info,
-                                           int costheta_index) {
+void RKDistrSetup::add_coord_index_coef(const PrEW::Data::DistrInfo & info,
+                                        const std::string & coef_name,
+                                        int coord_index) {
   /** Add a coefficient describing which index in the observables vector for 
-      this distribution describes the cos(Theta) coordinate.
-   **/                                            
-   int n_bins = this->find_pred_distr(info).m_bin_centers.size();
-   this->add_coef({Names::CoefNaming::costheta_index_coef_name(), info, 
-                   std::vector<double>(n_bins,costheta_index)});
+      this distribution describes the given coordinate.
+   **/
+  int n_bins = this->find_pred_distr(info).m_bin_centers.size();
+  this->add_coef({coef_name, info, std::vector<double>(n_bins,coord_index)});
 }
 
 //------------------------------------------------------------------------------

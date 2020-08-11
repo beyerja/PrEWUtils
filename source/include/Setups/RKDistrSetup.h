@@ -69,7 +69,7 @@ namespace Setups {
       // Functions determining how setup looks
       void use_distr(
         const std::string & distr_name, 
-        const std::string & mode="differential" // TODO TODO TODO IMPLEMENT INCLUDING OPTION FOR COMBINED XS
+        const std::string & mode="differential"
       );
     
       void set_lumi(int energy, double val, double ini_unc);
@@ -203,8 +203,8 @@ namespace Setups {
       void add_chi_distr_coefs(const PrEW::Data::DistrInfo & info, 
                                const std::vector<std::string> & chiral_configs, 
                                const std::string &type);
-      void add_costheta_index_coef(const PrEW::Data::DistrInfo & info, 
-                                   int costheta_index);
+      void add_coord_index_coef(const PrEW::Data::DistrInfo & info,
+                                const std::string & coef_name, int coord_index);
       void add_unity_coef(const PrEW::Data::DistrInfo & info, int n_bins);
       void add_tau_removal_coef(const PrEW::Data::DistrInfo & info, int n_bins);
       void add_nu_and_tau_removal_coef(
