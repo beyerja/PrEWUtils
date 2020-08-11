@@ -1,6 +1,7 @@
 #ifndef LIB_RKDISTRSETUP_H
 #define LIB_RKDISTRSETUP_H 1
 
+#include <SetupHelp/AccBoxInfo.h>
 #include <SetupHelp/AfInfo.h>
 #include <SetupHelp/ChiAsymmInfo.h>
 #include <SetupHelp/TGCInfo.h>
@@ -56,6 +57,8 @@ namespace Setups {
     
     bool m_use_cTGCs {};
     SetupHelp::TGCInfo m_TGC_info;
+    
+    std::vector<SetupHelp::AccBoxInfo> m_acc_boxes {};
     
     public: 
       // Constructor
@@ -126,11 +129,17 @@ namespace Setups {
       void
       free_2f_final_state_asymmetry(const std::string &distr_name,
                                     const std::string &asym_name = "default");
-
+      
       void set_WW_mu_only();
       void set_ZZ_mu_only();
       
-
+      void create_costheta_acceptance_box(const std::string & box_name, 
+                                          double center, double width);
+      void use_costheta_acceptance_box(const std::string & box_name, 
+                                       const std::string & distr_name,
+                                       double bin_width = 0.5,
+                                       int costheta_index = 0);
+      
       // Finishing the setup
       void complete_setup();
       
@@ -215,6 +224,7 @@ namespace Setups {
         const PrEW::Data::DistrInfo & info_pol,
         int n_bins
       );
+      void add_box_acc_coefs(const PrEW::Data::DistrInfo & info_chi);
       
       PrEW::Data::FctLink get_tau_removal_fct_link() const;
       PrEW::Data::FctLink get_nu_and_tau_removal_fct_link() const;
@@ -226,6 +236,9 @@ namespace Setups {
       ) const;
       PrEW::Data::FctLink get_lumi_fraction_fct_link(
         const PrEW::Data::DistrInfo & info_pol
+      ) const;
+      PrEW::Data::FctLinkVec get_box_acc_fct_links( 
+        const PrEW::Data::DistrInfo & info_chi
       ) const;
   };
   

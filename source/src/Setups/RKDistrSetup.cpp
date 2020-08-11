@@ -307,6 +307,56 @@ void RKDistrSetup::set_WW_mu_only() { m_WW_mu_only = true; }
 void RKDistrSetup::set_ZZ_mu_only() { m_ZZ_mu_only = true; }
 
 //------------------------------------------------------------------------------
+// Systematic effects
+
+void RKDistrSetup::create_costheta_acceptance_box(const std::string &box_name,
+                                                  double center, double width) {
+  /** Create an acceptance box to be applied to some distributions.
+   **/
+  SetupHelp::AccBoxInfo box(box_name,
+                            Names::CoefNaming::costheta_index_coef_name());
+
+  // Skip if this box already exists
+  if (std::find(m_acc_boxes.begin(), m_acc_boxes.end(), box) !=
+      m_acc_boxes.end()) {
+    spdlog::warn("Acceptance box {} already created!", box_name);
+    return;
+  }
+  
+  m_acc_boxes.push_back(box); // Add box
+  
+  // Add the relevant parameters
+  for ( const auto & par: box.get_pars(center, width) ) {
+    this->add_par(par);
+  }
+}
+
+void RKDistrSetup::use_costheta_acceptance_box(const std::string &box_name,
+                                               const std::string &distr_name,
+                                               double bin_width,
+                                               int costheta_index) {
+  /** Add an acceptance box for the cos(theta) coordinate of the given
+      distribution. Can represent e.g. an selection effect or a detector
+      acceptance.
+      The name of the box must be explicitely given to allow different shared
+      boxes for different effects.
+      The index of the cos(theta) coordinate may be explicitely given
+   **/
+   
+  // Check if box was already created
+  SetupHelp::AccBoxInfo box(box_name,
+                            Names::CoefNaming::costheta_index_coef_name());
+  auto box_it = std::find(m_acc_boxes.begin(), m_acc_boxes.end(), box);
+
+  if (box_it == m_acc_boxes.end()) {
+    throw std::invalid_argument("Acceptance box doesn't exist: " + box_name);
+  }
+
+  // Add the given distribution to the box
+  box_it->add_distr(distr_name, costheta_index, bin_width);
+}
+
+//------------------------------------------------------------------------------
 
 void RKDistrSetup::complete_setup() {
   /** 
@@ -612,6 +662,12 @@ void RKDistrSetup::complete_chi_setup(
   // be free -> If so, add the appropriate corresponding scalings
   if ( this->total_chiral_xsection_is_free( info_chi.m_distr_name ) ) {
     sig_fct_links.push_back( this->get_total_chi_xs_fct_link( info_chi ) );
+  }
+  
+  // Add instructions for box acceptance
+  this->add_box_acc_coefs(info_chi);
+  for (auto fct_link: this->get_box_acc_fct_links(info_chi)) {
+    sig_fct_links.push_back(fct_link);
   }
 
   PrEW::Data::PredLink link_chi { info_chi, sig_fct_links, bkg_fct_links };
@@ -1020,6 +1076,31 @@ void RKDistrSetup::add_lumi_fraction_coef(
 
 //------------------------------------------------------------------------------
 
+void RKDistrSetup::add_box_acc_coefs(const PrEW::Data::DistrInfo &info_chi) {
+  /** Add all coefficients that are needed to set up the acceptance box for this
+      distribution.
+   **/
+
+  int n_bins = this->find_pred_distr(info_chi).m_bin_centers.size();
+
+  for (const auto &acc_box : m_acc_boxes) {
+    const auto &distr_name = info_chi.m_distr_name;
+    if (acc_box.affects_distr(distr_name)) {
+      // Add coefficient for coordinate index
+      this->add_coef(
+          {acc_box.get_coord_name(), info_chi,
+           std::vector<double>(n_bins, acc_box.coord_index(distr_name))});
+
+      // Add coefficient for bin width
+      this->add_coef(
+          {Names::CoefNaming::bin_width_coef_name(), info_chi,
+           std::vector<double>(n_bins, acc_box.bin_width(distr_name))});
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+
 PrEW::Data::FctLink RKDistrSetup::get_tau_removal_fct_link() const {
   /** Returns instruction that describes how tau removal is built.
   **/
@@ -1089,6 +1170,25 @@ PrEW::Data::FctLink RKDistrSetup::get_lumi_fraction_fct_link(
     }
   };
   return lumi_fraction_fct_link;
+}
+
+//------------------------------------------------------------------------------
+
+PrEW::Data::FctLinkVec RKDistrSetup::get_box_acc_fct_links( 
+  const PrEW::Data::DistrInfo & info_chi
+) const {
+  /** Returns all functions links related to acceptance boxes that affect this
+      distribution.
+   **/
+  PrEW::Data::FctLinkVec fct_links {};
+   
+  for (const auto & acc_box: m_acc_boxes) {
+    if ( acc_box.affects_distr(info_chi.m_distr_name) ) {
+      fct_links.push_back( acc_box.get_fct_link() );
+    }
+  }
+  
+  return fct_links;
 }
 
 //------------------------------------------------------------------------------
