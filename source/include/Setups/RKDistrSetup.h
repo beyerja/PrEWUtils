@@ -182,14 +182,8 @@ namespace Setups {
         const std::string & distr_name, int energy
       );
       
-      void complete_chi_setup(
-        const PrEW::Data::DistrInfo & info_chi, 
-        int n_bins
-      );
-      void complete_pol_setup(
-        const PrEW::Data::DistrInfo & info_pol, 
-        int n_bins
-      );
+      void complete_chi_setup(const PrEW::Data::DistrInfo & info_chi);
+      void complete_pol_setup(const PrEW::Data::DistrInfo & info_pol);
       
       bool has_cTGCs_available(
         const std::string & distr_name, 
@@ -214,16 +208,10 @@ namespace Setups {
                                const std::string &type);
       void add_coord_index_coef(const PrEW::Data::DistrInfo & info,
                                 const std::string & coef_name, int coord_index);
-      void add_unity_coef(const PrEW::Data::DistrInfo & info, int n_bins);
-      void add_tau_removal_coef(const PrEW::Data::DistrInfo & info, int n_bins);
-      void add_nu_and_tau_removal_coef(
-        const PrEW::Data::DistrInfo & info,
-        int n_bins
-      );
-      void add_lumi_fraction_coef(
-        const PrEW::Data::DistrInfo & info_pol,
-        int n_bins
-      );
+      void add_unity_coef(const PrEW::Data::DistrInfo & info);
+      void add_tau_removal_coef(const PrEW::Data::DistrInfo & info);
+      void add_nu_and_tau_removal_coef(const PrEW::Data::DistrInfo & info);
+      void add_lumi_fraction_coef(const PrEW::Data::DistrInfo & info_pol);
       void add_box_acc_coefs(const PrEW::Data::DistrInfo & info_chi);
       
       PrEW::Data::FctLink get_tau_removal_fct_link() const;

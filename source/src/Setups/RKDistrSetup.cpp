@@ -387,9 +387,9 @@ void RKDistrSetup::complete_setup() {
   }
   spdlog::debug("Using coefficients:");
   for ( const auto & used_coef: m_used_coefs ) {
-    const auto & info = used_coef.m_info;
-    spdlog::debug("{} for {} @ {} & {}", used_coef.m_coef_name, info.m_distr_name, info.m_energy, info.m_pol_config);
-    spdlog::debug(" -> First coef value: {}", used_coef.m_coefficients.at(0));
+    const auto & info = used_coef.get_info();
+    spdlog::debug("{} for {} @ {} & {}", used_coef.get_coef_name(), info.m_distr_name, info.m_energy, info.m_pol_config);
+    spdlog::debug(" -> First coef value: {}", used_coef.get_coef(0));
   }
 }
 
@@ -558,7 +558,6 @@ void RKDistrSetup::complete_distr_setup(
   // Mark distribution as used and determine binning of the distributions
   auto distrs = this->determine_distrs(distr_name, energy);
   m_used_distrs.insert( m_used_distrs.end(), distrs.begin(), distrs.end() );
-  int n_bins = distrs.at(0).m_bin_centers.size();
   
   // Get coefficients for this distribution and mark them as used
   auto coefs = 
@@ -572,12 +571,12 @@ void RKDistrSetup::complete_distr_setup(
 
   // Set up all information for each chiral configuration
   for ( const auto & info_chi: this->get_infos_chi( distr_name, energy ) ) {
-    this->complete_chi_setup( info_chi, n_bins );
+    this->complete_chi_setup( info_chi );
   }
   
   // Set up all information for each polarisation configuration
   for ( const auto & info_pol: this->get_infos_pol( distr_name, energy ) ) {
-    this->complete_pol_setup( info_pol, n_bins );
+    this->complete_pol_setup( info_pol );
   }
 }
 
@@ -620,10 +619,7 @@ PrEW::Data::PredDistrVec RKDistrSetup::determine_distrs(
 
 //------------------------------------------------------------------------------
 
-void RKDistrSetup::complete_chi_setup(
-  const PrEW::Data::DistrInfo & info_chi, 
-  int n_bins
-) {
+void RKDistrSetup::complete_chi_setup(const PrEW::Data::DistrInfo & info_chi) {
   /** Set up the links, coefficients and parameters for a given chiral 
       distribution with a given number of bins.
   **/
@@ -633,13 +629,13 @@ void RKDistrSetup::complete_chi_setup(
   
   // Remove taus from WW if requested
   if ( m_WW_mu_only && (info_chi.m_distr_name == "WWsemileptonic") ) {
-    this->add_tau_removal_coef( info_chi, n_bins );
+    this->add_tau_removal_coef( info_chi );
     sig_fct_links.push_back( this->get_tau_removal_fct_link() );
   }
   
   // Remove taus and neutrinos form ZZ if requested
   if ( m_ZZ_mu_only && (info_chi.m_distr_name == "ZZsemileptonic") ) {
-    this->add_nu_and_tau_removal_coef( info_chi, n_bins );
+    this->add_nu_and_tau_removal_coef( info_chi );
     sig_fct_links.push_back( this->get_nu_and_tau_removal_fct_link() );
   }
 
@@ -648,7 +644,7 @@ void RKDistrSetup::complete_chi_setup(
         this->has_cTGCs_available( info_chi.m_distr_name, info_chi.m_energy ) 
   ) {
     // Coefficient that is simply 1.0, needed for TGC parameterisation
-    this->add_unity_coef( info_chi, n_bins);
+    this->add_unity_coef( info_chi );
     // Function that parametrises effect of cTGCs
     sig_fct_links.push_back( m_TGC_info.get_fct_link() );
   }
@@ -676,10 +672,7 @@ void RKDistrSetup::complete_chi_setup(
 
 //------------------------------------------------------------------------------
 
-void RKDistrSetup::complete_pol_setup(
-  const PrEW::Data::DistrInfo & info_pol, 
-  int n_bins
-) {
+void RKDistrSetup::complete_pol_setup(const PrEW::Data::DistrInfo & info_pol) {
   /** Set up the links, coefficients and parameters for a given polarised 
       distribution with a given number of bins.
   **/
@@ -688,7 +681,7 @@ void RKDistrSetup::complete_pol_setup(
   PrEW::Data::FctLinkVec bkg_fct_links {};
     
   // Add instructions for luminosity factor
-  this->add_lumi_fraction_coef(info_pol, n_bins);
+  this->add_lumi_fraction_coef(info_pol);
   sig_fct_links.push_back( this->get_lumi_fraction_fct_link( info_pol ) );
     
   PrEW::Data::PredLink link_pol { info_pol, sig_fct_links, bkg_fct_links };
@@ -841,8 +834,8 @@ void RKDistrSetup::add_coef(const PrEW::Data::CoefDistr &coef) {
    **/
   auto cond = 
     [coef](const PrEW::Data::CoefDistr &_coef){
-      return (_coef.m_coef_name==coef.m_coef_name) && 
-             (_coef.m_info==coef.m_info);};
+      return (_coef.get_coef_name()==coef.get_coef_name()) && 
+             (_coef.get_info()==coef.get_info());};
   auto coef_it = 
    std::find_if(m_used_coefs.begin(), m_used_coefs.end(), cond);
   if ( coef_it == m_used_coefs.end() ) {
@@ -871,7 +864,7 @@ bool RKDistrSetup::has_cTGCs_available(
   
   // Look if coefs are available
   for ( const auto & coef : coefs) {
-    if ( coef.m_coef_name == "TGCA" ) {
+    if ( coef.get_coef_name() == "TGCA" ) {
       cTGCs_available = true;
       break;
     }
@@ -972,18 +965,18 @@ void RKDistrSetup::add_chi_distr_coefs(
   
   // Find the corresponding distribution
   auto pred = this->find_pred_distr(info);
-  int n_bins = pred.m_sig_distr.size();
 
   // Determine coefficient content
   std::string coef_name = "";
-  std::vector<double> coef_vec {};
+  std::vector<double> coef_vec {}; // In case of differential coef
+  double coef {}; // In case of global coef
+  
 
   if ( type == "sum" ) {
     // Get the chiral signal cross section, which is needed to determine the 
     // asymmetry of the signal
     coef_name = Names::CoefNaming::chi_xs_coef_name( info );
-    double xs_chi = DataHelp::PredDistrHelp::get_pred_sum(pred, "signal");
-    coef_vec = std::vector<double>(n_bins,xs_chi);
+    coef = DataHelp::PredDistrHelp::get_pred_sum(pred, "signal");
   } else if ( type == "differential" ) {
     // Differential coefficient only created for its own distribution
     coef_name = Names::CoefNaming::chi_distr_coef_name(info, "signal"),
@@ -995,9 +988,15 @@ void RKDistrSetup::add_chi_distr_coefs(
   
   // Create coefficient for all distributions that need it
   for ( const auto & other_config: chiral_configs ) {
+    PrEW::Data::CoefDistr new_coef {};
     PrEW::Data::DistrInfo new_info {info.m_distr_name, other_config, 
                                     info.m_energy};
-    PrEW::Data::CoefDistr new_coef { coef_name, new_info, coef_vec };
+    if ( type == "sum" ) {
+      new_coef = PrEW::Data::CoefDistr(coef_name,new_info,coef);
+    } else if ( type == "differential" ) {
+      new_coef = PrEW::Data::CoefDistr(coef_name,new_info,coef_vec);
+    }
+
     this->add_coef(new_coef);
   }
 }
@@ -1010,68 +1009,55 @@ void RKDistrSetup::add_coord_index_coef(const PrEW::Data::DistrInfo & info,
   /** Add a coefficient describing which index in the observables vector for 
       this distribution describes the given coordinate.
    **/
-  int n_bins = this->find_pred_distr(info).m_bin_centers.size();
-  this->add_coef({coef_name, info, std::vector<double>(n_bins,coord_index)});
+  this->add_coef({coef_name, info, double(coord_index)});
 }
 
 //------------------------------------------------------------------------------
 
-void RKDistrSetup::add_unity_coef( 
-  const PrEW::Data::DistrInfo & info,
-  int n_bins
-) {
+void RKDistrSetup::add_unity_coef( const PrEW::Data::DistrInfo & info ) {
   /** Add a coefficient which is simply 1.0 for each bin of the distribution 
       described by the given info.
   **/
   // TODO ADD CONVENTION FOR "ONE" PARAMETER TO NAMES NAMESPACE
-  this->add_coef({"One", info, std::vector<double>(n_bins,1.0)});
+  this->add_coef({"One", info, 1.0});
 }
 
 //------------------------------------------------------------------------------
 
-void RKDistrSetup::add_tau_removal_coef(
-  const PrEW::Data::DistrInfo & info,
-  int n_bins
-) {
+void RKDistrSetup::add_tau_removal_coef( const PrEW::Data::DistrInfo & info ) {
   /** Add the coefficient that is needed to remove taus from the muon/tau 
       mixture of W decays.
   **/
   // TODO COEFFICIENT CONVENTIONS IN NAMES NAMESPACE!!!
   double tau_removal = 0.5; // Remove tau from tau/muon mixture
   this->add_coef(
-    {"TauRemovalFactor", info, std::vector<double>(n_bins,tau_removal)});
+    {"TauRemovalFactor", info, tau_removal});
 }
 
 //------------------------------------------------------------------------------
 
 void RKDistrSetup::add_nu_and_tau_removal_coef(
-  const PrEW::Data::DistrInfo & info,
-  int n_bins
+  const PrEW::Data::DistrInfo & info
 ) {
   /** Add the coefficient that is needed to remove neutrinos (2. & 3. gen) and 
       taus from mixture of 2. & 3. gen. lepton decays of Z bosons.
   **/
   // TODO COEFFICIENT CONVENTIONS IN NAMES NAMESPACE!!!
   double nu_and_tau_removal = 0.168;
-  this->add_coef({"NuAndTauRemovalFactor", info, 
-                  std::vector<double>(n_bins,nu_and_tau_removal)});
+  this->add_coef({"NuAndTauRemovalFactor", info, nu_and_tau_removal});
 }
 
 //------------------------------------------------------------------------------
 
 void RKDistrSetup::add_lumi_fraction_coef(
-  const PrEW::Data::DistrInfo & info_pol,
-  int n_bins
+  const PrEW::Data::DistrInfo & info_pol
 ) {
   /** Add the coefficient for the luminosity fraction of a given distribution 
       (for each bin).
   **/
   this->add_coef(
     { Names::CoefNaming::lumi_fraction_name(info_pol), info_pol,
-      std::vector<double>( 
-        n_bins, 
-        m_lumi_fractions.at(info_pol.m_energy).at(info_pol.m_pol_config) 
-      ) });
+      m_lumi_fractions.at(info_pol.m_energy).at(info_pol.m_pol_config) });
 }
 
 //------------------------------------------------------------------------------
@@ -1080,21 +1066,16 @@ void RKDistrSetup::add_box_acc_coefs(const PrEW::Data::DistrInfo &info_chi) {
   /** Add all coefficients that are needed to set up the acceptance box for this
       distribution.
    **/
-
-  int n_bins = this->find_pred_distr(info_chi).m_bin_centers.size();
-
   for (const auto &acc_box : m_acc_boxes) {
     const auto &distr_name = info_chi.m_distr_name;
     if (acc_box.affects_distr(distr_name)) {
       // Add coefficient for coordinate index
-      this->add_coef(
-          {acc_box.get_coord_name(), info_chi,
-           std::vector<double>(n_bins, acc_box.coord_index(distr_name))});
+      this->add_coef({acc_box.get_coord_name(), info_chi,
+                      double(acc_box.coord_index(distr_name))});
 
       // Add coefficient for bin width
-      this->add_coef(
-          {Names::CoefNaming::bin_width_coef_name(), info_chi,
-           std::vector<double>(n_bins, acc_box.bin_width(distr_name))});
+      this->add_coef({Names::CoefNaming::bin_width_coef_name(), info_chi,
+                      double(acc_box.bin_width(distr_name))});
     }
   }
 }
