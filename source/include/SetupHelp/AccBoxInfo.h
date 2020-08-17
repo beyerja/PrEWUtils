@@ -20,6 +20,10 @@ class AccBoxInfo {
 
   std::string m_name_base{};
   std::string m_coord_name{};
+  
+  // Internal trackers if the parameters are supposed to be fixed
+  bool m_center_fixed{false};
+  bool m_width_fixed{false};
 
   // Map of affected distributions and the index of the relevant coordinate
   struct AccBoxDistrInfo {
@@ -34,6 +38,8 @@ public:
   AccBoxInfo(const std::string &name_base, const std::string &coord_name);
 
   // Adding information
+  void fix_center();
+  void fix_width();
   void add_distr(const std::string &distr_name, int coord_index,
                  double bin_width);
 
