@@ -310,7 +310,8 @@ void RKDistrSetup::set_ZZ_mu_only() { m_ZZ_mu_only = true; }
 // Systematic effects
 
 void RKDistrSetup::create_costheta_acceptance_box(const std::string &box_name,
-                                                  double center, double width) {
+                                                  double center, double width,
+                                                  bool fixed_pars) {
   /** Create an acceptance box to be applied to some distributions.
    **/
   SetupHelp::AccBoxInfo box(box_name,
@@ -321,6 +322,12 @@ void RKDistrSetup::create_costheta_acceptance_box(const std::string &box_name,
       m_acc_boxes.end()) {
     spdlog::warn("Acceptance box {} already created!", box_name);
     return;
+  }
+  
+  // Fix the parameters if requested (Else free fit parameters)
+  if (fixed_pars) {
+    box.fix_center();
+    box.fix_width();
   }
   
   m_acc_boxes.push_back(box); // Add box

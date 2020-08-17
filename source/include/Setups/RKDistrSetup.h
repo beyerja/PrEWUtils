@@ -134,7 +134,8 @@ namespace Setups {
       void set_ZZ_mu_only();
       
       void create_costheta_acceptance_box(const std::string & box_name, 
-                                          double center, double width);
+                                          double center, double width,
+                                          bool fixed_pars = false);
       void use_costheta_acceptance_box(const std::string & box_name, 
                                        const std::string & distr_name,
                                        double bin_width = 0.5,
