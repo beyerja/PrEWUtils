@@ -26,6 +26,9 @@ void AccBoxInfo::add_distr(const std::string &distr_name, int coord_index,
   m_distrs[distr_name] = {coord_index, bin_width};
 }
 
+void AccBoxInfo::fix_center() { m_center_fixed = true; }
+void AccBoxInfo::fix_width() { m_width_fixed = true; }
+
 //------------------------------------------------------------------------------
 // Access functions
 
@@ -59,9 +62,14 @@ PrEW::Fit::ParVec AccBoxInfo::get_pars(double initial_center,
                                        double initial_unc) const {
   /** Get the FitPar's for the acceptance box center and width.
    **/
-  PrEW::Fit::ParVec pars{{this->get_center_name(), initial_center, initial_unc},
-                         {this->get_width_name(), initial_width, initial_unc}};
-  return pars;
+  PrEW::Fit::FitPar center_par (this->get_center_name(), initial_center, initial_unc);
+  PrEW::Fit::FitPar width_par (this->get_width_name(), initial_width, initial_unc);
+  
+  // Fix the parameters if requested
+  if (m_center_fixed) {center_par.fix();}
+  if (m_width_fixed) {width_par.fix();}
+  
+  return {center_par, width_par};
 }
 
 PrEW::Data::FctLink AccBoxInfo::get_fct_link() const {
