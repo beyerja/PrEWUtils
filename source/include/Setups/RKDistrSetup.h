@@ -4,6 +4,7 @@
 #include <SetupHelp/AccBoxInfo.h>
 #include <SetupHelp/AfInfo.h>
 #include <SetupHelp/ChiAsymmInfo.h>
+#include <SetupHelp/ConstEffInfo.h>
 #include <SetupHelp/TGCInfo.h>
 
 // Includes from PrEW
@@ -59,6 +60,7 @@ namespace Setups {
     SetupHelp::TGCInfo m_TGC_info;
     
     std::vector<SetupHelp::AccBoxInfo> m_acc_boxes {};
+    SetupHelp::ConstEffInfoVec m_const_effs {};
     
     public: 
       // Constructor
@@ -140,6 +142,11 @@ namespace Setups {
                                        const std::string & distr_name,
                                        double bin_width = 0.5,
                                        int costheta_index = 0);
+                                       
+     void constant_efficiency(const std::string &distr_name, double val,
+                              bool is_fixed = false);
+     void constrain_constant_efficiency(const std::string &distr_name,
+                                        double val, double unc);
       
       // Finishing the setup
       void complete_setup();
@@ -227,6 +234,9 @@ namespace Setups {
         const PrEW::Data::DistrInfo & info_pol
       ) const;
       PrEW::Data::FctLinkVec get_box_acc_fct_links( 
+        const PrEW::Data::DistrInfo & info_chi
+      ) const;
+      PrEW::Data::FctLink get_const_eff_fct_link( 
         const PrEW::Data::DistrInfo & info_chi
       ) const;
   };

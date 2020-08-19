@@ -78,5 +78,13 @@ std::string ParNaming::lumi_name ( int energy, std::string energy_unit ) {
 
 //------------------------------------------------------------------------------
 
+std::string ParNaming::const_eff_name ( const std::string & distr_name ) {
+  /** Convention for naming a constant efficiency parameter.
+   **/
+  return "ConstEff_" + distr_name;
+}
+
+//------------------------------------------------------------------------------
+
 } // Namespace Names
 } // Namespace PrEWUtils

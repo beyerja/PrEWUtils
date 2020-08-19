@@ -38,6 +38,8 @@ namespace ParNaming {
   
   std::string lumi_name ( int energy, std::string energy_unit="GeV" );
   
+  std::string const_eff_name ( const std::string & distr_name );
+  
 } // Namespace ParNaming
   
 } // Namespace Names
