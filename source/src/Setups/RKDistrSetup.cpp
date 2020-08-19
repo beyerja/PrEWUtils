@@ -365,6 +365,28 @@ void RKDistrSetup::use_costheta_acceptance_box(const std::string &box_name,
 
 //------------------------------------------------------------------------------
 
+void RKDistrSetup::constant_efficiency(const std::string &distr_name,
+                                       double val, bool is_fixed) {
+  /** Apply a constant (= coordinate-independent) efficiency parameter to the
+      distribution.
+   **/
+  SetupHelp::ConstEffInfo const_eff_info(distr_name, val);
+  if (is_fixed) const_eff_info.fix();
+  
+  m_const_effs.push_back(const_eff_info);
+  this->add_par(const_eff_info.get_par());
+}
+
+void RKDistrSetup::constrain_constant_efficiency(const std::string &distr_name,
+                                                 double val, double unc) {
+  /** Add a constraint to the efficiency parameter of the distribution.
+   **/
+  this->find_par(Names::ParNaming::const_eff_name(distr_name))
+      .set_constrgauss(val, unc);
+}
+
+//------------------------------------------------------------------------------
+
 void RKDistrSetup::complete_setup() {
   /** 
       Set up the function links and coefficients according to the configurations
@@ -671,6 +693,12 @@ void RKDistrSetup::complete_chi_setup(const PrEW::Data::DistrInfo & info_chi) {
   this->add_box_acc_coefs(info_chi);
   for (auto fct_link: this->get_box_acc_fct_links(info_chi)) {
     sig_fct_links.push_back(fct_link);
+  }
+  
+  // Add instruction for constant coefficient
+  auto const_eff_fct_link = this->get_const_eff_fct_link(info_chi);
+  if (const_eff_fct_link.m_fct_name != "" ) {
+    sig_fct_links.push_back(const_eff_fct_link);
   }
 
   PrEW::Data::PredLink link_chi { info_chi, sig_fct_links, bkg_fct_links };
@@ -1177,6 +1205,21 @@ PrEW::Data::FctLinkVec RKDistrSetup::get_box_acc_fct_links(
   }
   
   return fct_links;
+}
+
+//------------------------------------------------------------------------------
+
+PrEW::Data::FctLink RKDistrSetup::get_const_eff_fct_link(
+    const PrEW::Data::DistrInfo &info_chi) const {
+  /** If distribution has const efficiency assigned, get its function link.
+   **/
+  PrEW::Data::FctLink fct_link{};
+  auto const_eff_it = std::find(m_const_effs.begin(), m_const_effs.end(),
+                                info_chi.m_distr_name);
+  if (const_eff_it != m_const_effs.end()) {
+    fct_link = const_eff_it->get_fct_link();
+  }
+  return fct_link;
 }
 
 //------------------------------------------------------------------------------
