@@ -28,6 +28,6 @@ Setup classes provide an interface to tell PrEW the input and the instructions o
 
 Runner classes provide an interface for performing the actual `PrEW` fit with a given setup.
 
-### PrEWRunRK
+### PrEWRunExample
 
-The `PrEWRunRK` repository demonstrates how to use `PrEWUtils` on the example of some files which were provided by Robert Karl.
+The `PrEWRunExample` repository demonstrates how to use `PrEWUtils`.
