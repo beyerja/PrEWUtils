@@ -14,6 +14,11 @@ namespace CoefNaming {
   **/
 
   std::string lumi_fraction_name ( 
+    const std::string & pol_config,
+    int energy, 
+    std::string energy_unit="GeV"
+  );
+  std::string lumi_fraction_name ( 
     const PrEW::Data::DistrInfo & info_pol, 
     std::string energy_unit="GeV"
   );
