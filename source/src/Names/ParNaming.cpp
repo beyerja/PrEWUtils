@@ -70,10 +70,10 @@ std::string ParNaming::Af_par_name ( const std::string & distr_name ) {
 
 //------------------------------------------------------------------------------
 
-std::string ParNaming::lumi_name ( int energy, std::string energy_unit ) {
+std::string ParNaming::lumi_name() {
   /** Convention for naming the luminosity parameter.
-  **/
-  return "Lumi" + std::to_string(energy) + energy_unit;
+   **/
+  return "Lumi";
 }
 
 //------------------------------------------------------------------------------
