@@ -3,6 +3,7 @@
 
 #include <DataHelp/BinSelector.h>
 #include <Parallel/ThreadPool.h>
+#include <Setups/FitModifier.h>
 
 // Includes from PrEW
 #include "Connect/DataConnector.h"
@@ -43,6 +44,7 @@ namespace Runners {
       
       // Set extra options
       void set_bin_selector(DataHelp::BinSelector bin_selector);
+      void modify_fit(const Setups::FitModifier &modifier);
       
       // Running toy fits
       PrEW::Fit::ResultVec run_toy_fits(

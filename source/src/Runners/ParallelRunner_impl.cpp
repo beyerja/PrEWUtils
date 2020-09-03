@@ -1,5 +1,5 @@
 #include <Runners/ParallelRunner.h>
-#include <Setups/RKDistrSetup.h>
+#include <Setups/GeneralSetup.h>
 
 namespace PrEWUtils {
 namespace Runners {
@@ -9,7 +9,7 @@ namespace Runners {
       Note meant to be included or used anywhere.
   **/
   
-  template class ParallelRunner<Setups::RKDistrSetup>;
+  template class ParallelRunner<Setups::GeneralSetup>;
   
 } // Namespace Runners
 } // Namespace PrEWUtils

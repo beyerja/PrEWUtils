@@ -2,7 +2,10 @@
 #define LIB_AFINFO_H 1
 
 // Includes from PrEW
+#include <Data/CoefDistr.h>
 #include <Data/FctLink.h>
+#include <Data/PredDistr.h>
+#include <Data/PredLink.h>
 #include <Fit/FitPar.h>
 #include <GlobalVar/Chiral.h>
 
@@ -14,40 +17,37 @@ namespace PrEWUtils {
 namespace SetupHelp {
 
 class AfInfo {
-  /** Helper class that desribes the information connected to an Af parameter
-      for a 2-fermion distribution.
+  /** Helper class that describes the information connected to an Af
+      parametrisation for a 2-fermion distribution.
       Af = [ (c_L^f)^2 - (c_R^f)^2 ] / [ (c_L^f)^2 + (c_R^f)^2 ]
+      WARNING:
+        Replaces the original distribution with the SM tree level
+        expectation (and does not take into account bin width)!
   **/
 
   std::string m_distr_name{};
-  std::string m_Af_name{};
-  std::string m_LR_config{};
-  std::string m_RL_config{};
+  int m_costheta_index{};
+  PrEW::Fit::FitPar m_par;
+  PrEW::Data::PredLinkVec m_pred_links{};
 
 public:
   // Constructors
-  AfInfo(const std::string &distr_name,
-         const std::string &Af_name = "default",
-         const std::string &LR_config = PrEW::GlobalVar::Chiral::eLpR,
-         const std::string &RL_config = PrEW::GlobalVar::Chiral::eRpL);
+  AfInfo(const std::string &distr_name, const std::string &Af_name = "default",
+         int costheta_index = 0);
 
   // Access functions
-  const std::string &get_distr_name() const;
-  const std::string &get_Af_name() const;
-  const std::string &get_LR_config() const;
-  const std::string &get_RL_config() const;
+  PrEW::Fit::ParVec get_pars() const;
 
-  // Functions needed for setting up PrEW fit
-  PrEW::Fit::FitPar get_par(double initial_val = 0,
-                            double initial_unc = 0.0001) const;
-  PrEW::Data::FctLink get_fct_link(int energy,
-                                   const std::string &chiral_config) const;
+  PrEW::Data::PredLinkVec
+  get_pred_links(const PrEW::Data::InfoVec &infos) const;
+  PrEW::Data::CoefDistrVec
+  get_coefs(const PrEW::Data::PredDistrVec &preds) const;
 
 protected:
-  // Internal functions
-  // int chiral_config_index(const std::string &chiral_config) const;
-  // std::vector<std::string> xs_coef_names(int energy) const;
+  PrEW::Data::FctLink get_fct_link(const PrEW::Data::DistrInfo &info) const;
 };
+
+using AfInfoVec = std::vector<AfInfo>;
 
 } // namespace SetupHelp
 } // namespace PrEWUtils
