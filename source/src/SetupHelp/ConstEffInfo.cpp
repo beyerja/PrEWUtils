@@ -10,56 +10,50 @@ namespace SetupHelp {
 // Constructors
 
 ConstEffInfo::ConstEffInfo(const std::string &distr_name, double eff)
-    : m_distr_name(distr_name), m_eff(eff) {}
+    : m_distr_name(distr_name),
+      m_eff_par(Names::ParNaming::const_eff_name(distr_name), eff,
+                0.0001 * eff) {}
 
 //------------------------------------------------------------------------------
 // Modification funcitons
 
-void ConstEffInfo::fix() { m_is_fixed = true; }
+void ConstEffInfo::fix() { m_eff_par.fix(); }
 
-//------------------------------------------------------------------------------
-// Access functions
-
-// Access functions
-const std::string &ConstEffInfo::get_distr_name() const { return m_distr_name; }
-double ConstEffInfo::get_eff() const { return m_eff; }
-
-//------------------------------------------------------------------------------
-// Functions to use asymmetry in PrEW
-
-PrEW::Fit::FitPar ConstEffInfo::get_par() const {
-  /** Get the PrEW FitPar for this Af parameter.
+void ConstEffInfo::constrain(double val, double unc) {
+  /** Set a gaussian constraint on the efficiency parameter.
    **/
-  PrEW::Fit::FitPar eff_par(Names::ParNaming::const_eff_name(m_distr_name),
-                            m_eff, 0.0001 * m_eff);
-  if (m_is_fixed) {
-    eff_par.fix();
-  }
-  return eff_par;
+  m_eff_par.set_constrgauss(val, unc);
 }
 
-PrEW::Data::FctLink ConstEffInfo::get_fct_link() const {
-  /** Get PrEW function link for a single chiral configuration.
-      These function links are used by PrEW as instructions for how to set up
-      the bin predictions.
+//------------------------------------------------------------------------------
+// Access functions
+
+PrEW::Fit::ParVec ConstEffInfo::get_pars() const {
+  /** Get the PrEW FitPar for this efficiency parameter.
    **/
+  return {m_eff_par};
+}
+
+PrEW::Data::PredLinkVec
+ConstEffInfo::get_pred_links(const PrEW::Data::InfoVec &infos) const {
+  /** Get the linking instructions for PrEW.
+   **/
+  PrEW::Data::PredLinkVec pred_links{};
+
+  // The relevant function instruction
   PrEW::Data::FctLink fct_link{
       "Constant",                                       // PrEW function name
       {Names::ParNaming::const_eff_name(m_distr_name)}, // Parameter names
       {}                                                // no coefficients
   };
-  return fct_link;
-}
 
-//------------------------------------------------------------------------------
-// Operators
-
-bool ConstEffInfo::operator==(const ConstEffInfo &other) const {
-  return m_distr_name == other.get_distr_name();
-}
-
-bool ConstEffInfo::operator==(const std::string &distr_name) const {
-  return m_distr_name == distr_name;
+  // Use the function instruction for the affected distribution
+  for (const auto &info : infos) {
+    if (info.m_distr_name == m_distr_name) {
+      pred_links.push_back(PrEW::Data::PredLink{info, {fct_link}, {}});
+    }
+  }
+  return pred_links;
 }
 
 //------------------------------------------------------------------------------
