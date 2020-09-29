@@ -31,6 +31,8 @@ void GeneralSetup::add_input_file(const std::string &file_path,
   PrEW::Input::InputInfo *info{};
   if (file_type == "RK") {
     info = new PrEW::Input::InfoRKFile{{file_path, "RK"}, m_energy};
+  } else if (file_type == "CSV") {
+    info = new PrEW::Input::InputInfo{file_path, "CSV"};
   } else {
     throw std::invalid_argument("Unknown input file type" + file_type);
   }
@@ -65,6 +67,13 @@ void GeneralSetup::use_distr(const std::string &distr_name,
   **/
   auto distrs = this->find_input_distrs(distr_name);
   auto coefs = this->find_input_coefs(distr_name);
+
+  if (distrs.size() == 0) {
+    spdlog::warn("Didn't find any predictions for distribution: {}",
+                 distr_name);
+  } else {
+    spdlog::debug("Found {} chiral distrs for {}", distrs.size(), distr_name);
+  }
 
   if (mode == "differential") {
     // Nothing to do, already differential
@@ -227,7 +236,7 @@ void GeneralSetup::add_pred_links(const PrEW::Data::PredLinkVec &pred_links) {
   /** Add the prediction links to the links of this setup.
    **/
   spdlog::debug("Trying to add {} prediction links.", pred_links.size());
-  DataHelp::PredLinkHelp::add_links_to_vec(pred_links,m_pred_links);
+  DataHelp::PredLinkHelp::add_links_to_vec(pred_links, m_pred_links);
 }
 
 //------------------------------------------------------------------------------
@@ -242,7 +251,7 @@ void GeneralSetup::print_result() const {
     pars += " " + par.get_name() + " |";
   }
   spdlog::debug(pars);
-  
+
   spdlog::debug("Using distributions:");
   for (const auto &used_distr : m_used_distrs) {
     const auto &info = used_distr.m_info;
