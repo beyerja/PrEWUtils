@@ -2,6 +2,7 @@
 #include <DataHelp/DistrHelp.h>
 #include <DataHelp/FitParHelp.h>
 #include <DataHelp/PredLinkHelp.h>
+#include <SetupHelp/InputHelp.h>
 #include <Setups/GeneralSetup.h>
 
 // Includes from PrEW
@@ -47,6 +48,27 @@ void GeneralSetup::add_input_file(const std::string &file_path,
   m_input_coefs.insert(m_input_coefs.end(), new_coef.begin(), new_coef.end());
 
   delete info;
+}
+
+//------------------------------------------------------------------------------
+
+void GeneralSetup::add_input_files(const std::string &dir,
+                                   const std::string &file_name,
+                                   const std::string &file_type) {
+  /** Read distributions from the files in the directory that fit the given file
+      name.
+      The file name can contain regular expressions.
+   **/
+
+  auto file_paths = SetupHelp::InputHelp::regex_search(dir, file_name);
+
+  if (file_paths.size() == 0) {
+    spdlog::warn("No files found in {} that fit {}", dir, file_name);
+  }
+
+  for (const auto &file_path : file_paths) {
+    this->add_input_file(file_path, file_type);
+  }
 }
 
 //------------------------------------------------------------------------------

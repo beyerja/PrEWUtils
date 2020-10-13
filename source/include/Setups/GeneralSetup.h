@@ -45,7 +45,7 @@ class GeneralSetup {
   SetupHelp::ConstEffInfoVec m_const_eff_infos{};
   SetupHelp::CrossSectionInfoVec m_xsection_infos{};
   SetupHelp::TGCInfoVec m_TGC_infos{};
-  
+
   // Output specifiers
   SetupHelp::ParOrder::Ordering m_par_ordering{
       SetupHelp::ParOrder::default_ordering};
@@ -58,6 +58,8 @@ public:
   // Add input
   void add_input_file(const std::string &file_path,
                       const std::string &file_type);
+  void add_input_files(const std::string &dir, const std::string &file_name,
+                       const std::string &file_type);
 
   // Functions determining how setup looks
   void use_distr(const std::string &distr_name,
@@ -70,10 +72,10 @@ public:
   void add(SetupHelp::CrossSectionInfo info);
   void add(SetupHelp::TGCInfo info);
   // void add(SetupHelp::ConstEffInfo info);
-  
+
   void set_par_ordering(const SetupHelp::ParOrder::Ordering &ordering,
-    const SetupHelp::ParOrder::IDMap &id_map =
-    SetupHelp::ParOrder::default_par_map);
+                        const SetupHelp::ParOrder::IDMap &id_map =
+                            SetupHelp::ParOrder::default_par_map);
 
   // Finishing the setup
   void complete_setup();
