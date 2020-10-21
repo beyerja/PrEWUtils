@@ -44,7 +44,7 @@ PredDistrHelp::pred_to_coef(const PrEW::Data::PredDistr &pred,
                                 + type).c_str());
   }
    
-  int n_bins = pred.m_bin_centers.size();
+  int n_bins = pred.m_coords.size();
    
   std::vector<double> coefs (n_bins, 0);
   
