@@ -22,7 +22,8 @@ using CategorizedPars = std::map<std::string, PrEW::Fit::ParVec>;
 static const IDMap default_par_map{
     {"Lumi", {"Lumi"}},                                                 //
     {"Pols", {"ePol", "pPol"}},                                         //
-    {"AccBoxes", {"Acceptance_center", "Acceptance_width"}},            //
+    {"AccBoxes", {"Acceptance_center", "Acceptance_width",              //
+                  "_dCenter", "_dWidth"}},                              //
     {"Efficiencies", {"ConstEff"}},                                     //
     {"TGCs", {"Delta-g1Z", "Delta-kappa_gamma", "Delta-lambda_gamma"}}, //
     {"Asymmetries", {"DeltaA"}},                                        //
