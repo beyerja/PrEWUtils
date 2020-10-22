@@ -2,6 +2,7 @@
 #define LIB_GENERALSETUP_H 1
 
 #include <SetupHelp/AccBoxInfo.h>
+#include <SetupHelp/AccBoxPolynomialInfo.h>
 #include <SetupHelp/ConstEffInfo.h>
 #include <SetupHelp/CrossSectionInfo.h>
 #include <SetupHelp/ParOrder.h>
@@ -42,6 +43,7 @@ class GeneralSetup {
 
   // Optional setup specifiers
   SetupHelp::AccBoxInfoVec m_acc_box_infos{};
+  SetupHelp::AccBoxPolynomialInfoVec m_acc_box_polyn_infos{};
   SetupHelp::ConstEffInfoVec m_const_eff_infos{};
   SetupHelp::CrossSectionInfoVec m_xsection_infos{};
   SetupHelp::TGCInfoVec m_TGC_infos{};
@@ -68,6 +70,7 @@ public:
   void set_run(SetupHelp::RunInfo run_info);
 
   void add(SetupHelp::AccBoxInfo info);
+  void add(SetupHelp::AccBoxPolynomialInfo info);
   void add(SetupHelp::ConstEffInfo info);
   void add(SetupHelp::CrossSectionInfo info);
   void add(SetupHelp::TGCInfo info);
@@ -100,6 +103,7 @@ protected:
 
   void complete_run_setup(const PrEW::Data::InfoVec &infos);
   void complete_acc_box_setup(const PrEW::Data::InfoVec &infos);
+  void complete_acc_box_polyn_setup(const PrEW::Data::InfoVec &infos);
   void complete_const_eff_setup(const PrEW::Data::InfoVec &infos);
   void complete_TGC_setup(const PrEW::Data::InfoVec &infos);
   void complete_xsection_setup(const PrEW::Data::InfoVec &infos);
