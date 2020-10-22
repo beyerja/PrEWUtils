@@ -133,6 +133,12 @@ void GeneralSetup::add(SetupHelp::AccBoxInfo info) {
   m_acc_box_infos.push_back(info);
 }
 
+void GeneralSetup::add(SetupHelp::AccBoxPolynomialInfo info) {
+  /** Add an acceptance box that uses a 2nd order polynomial at the bin edge.
+   **/
+  m_acc_box_polyn_infos.push_back(info);
+}
+
 void GeneralSetup::add(SetupHelp::ConstEffInfo info) {
   /** Add an chiral cross section instruction.
    **/
@@ -175,6 +181,7 @@ void GeneralSetup::complete_setup() {
 
   this->complete_run_setup(infos);
   this->complete_acc_box_setup(infos);
+  this->complete_acc_box_polyn_setup(infos);
   this->complete_const_eff_setup(infos);
   this->complete_TGC_setup(infos);
   this->complete_xsection_setup(infos);
@@ -322,6 +329,16 @@ void GeneralSetup::complete_acc_box_setup(const PrEW::Data::InfoVec &infos) {
     this->add_pars(acc_box.get_pars());
     this->add_pred_links(acc_box.get_pred_links(infos));
     this->add_coefs(acc_box.get_coefs(infos));
+  }
+}
+
+void GeneralSetup::complete_acc_box_polyn_setup(
+    const PrEW::Data::InfoVec &infos) {
+  /** Complete the part of the setup related to the acceptance boxes.
+   **/
+  for (const auto &acc_box : m_acc_box_polyn_infos) {
+    this->add_pars(acc_box.get_pars());
+    this->add_pred_links(acc_box.get_pred_links(infos));
   }
 }
 
