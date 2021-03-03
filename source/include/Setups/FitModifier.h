@@ -2,6 +2,7 @@
 #define LIB_FITMODIFIER_H 1
 
 #include <SetupHelp/AfInfo.h>
+#include <SetupHelp/DifermionParamInfo.h>
 #include <SetupHelp/ParOrder.h>
 
 // includes from PrEW
@@ -24,6 +25,7 @@ class FitModifier {
 
   // Optional modification specifiers
   SetupHelp::AfInfoVec m_Af_infos{};
+  SetupHelp::DifermionParamInfoVec m_difermion_param_infos{};
 
   // Output specifiers
   SetupHelp::ParOrder::Ordering m_par_ordering{
@@ -39,6 +41,7 @@ public:
 
   // Instructions on what to modify
   void add(SetupHelp::AfInfo info);
+  void add(SetupHelp::DifermionParamInfo info);
 
   void set_par_ordering(const SetupHelp::ParOrder::Ordering &ordering,
                         const SetupHelp::ParOrder::IDMap &id_map =
@@ -51,6 +54,8 @@ public:
 protected:
   // Internal functions
   void apply_Af_mod(PrEW::Connect::DataConnector *connector,
+                    PrEW::Fit::ParVec *pars) const;
+  void apply_2f_mod(PrEW::Connect::DataConnector *connector,
                     PrEW::Fit::ParVec *pars) const;
 
   void add_to_connector(PrEW::Connect::DataConnector *connector,

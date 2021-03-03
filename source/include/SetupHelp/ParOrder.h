@@ -27,13 +27,14 @@ static const IDMap default_par_map{
     {"Efficiencies", {"ConstEff"}},                                     //
     {"TGCs", {"Delta-g1Z", "Delta-kappa_gamma", "Delta-lambda_gamma"}}, //
     {"Asymmetries", {"DeltaA"}},                                        //
-    {"Ae", {"Ae_"}},                                                    //
-    {"Af", {"Af_"}},                                                    //
+    {"Ae", {"Ae_", "Ae"}},                                                    //
+    {"Af", {"Af_", "Af"}},                                                    //
+    {"2fPars", {"Sigma0", "AR", "kL", "kR"}},
     {"XSectionScalings", {"ScaleTotChiXS"}}                             //
 };
 
 static const Ordering default_ordering{
-    "TGCs", "Asymmetries",  "Ae",      "Af", "Pols", "XSectionScalings",
+    "TGCs", "Asymmetries",  "Ae",      "Af", "2fPars", "Pols", "XSectionScalings",
     "Lumi", "Efficiencies", "AccBoxes"};
 
 bool par_fits_ID(const PrEW::Fit::FitPar &par, const IDVec &ids);
