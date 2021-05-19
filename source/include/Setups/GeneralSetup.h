@@ -1,13 +1,8 @@
 #ifndef LIB_GENERALSETUP_H
 #define LIB_GENERALSETUP_H 1
 
-#include <SetupHelp/AccBoxInfo.h>
-#include <SetupHelp/AccBoxPolynomialInfo.h>
-#include <SetupHelp/ConstEffInfo.h>
-#include <SetupHelp/CrossSectionInfo.h>
+#include <SetupHelp/SetupInfos.h>
 #include <SetupHelp/ParOrder.h>
-#include <SetupHelp/RunInfo.h>
-#include <SetupHelp/TGCInfo.h>
 
 // Includes from PrEW
 #include "Connect/DataConnector.h"
