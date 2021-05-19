@@ -145,6 +145,12 @@ void GeneralSetup::add(SetupHelp::ConstEffInfo info) {
   m_const_eff_infos.push_back(info);
 }
 
+void GeneralSetup::add(SetupHelp::DifermionParamInfo info) {
+  /** Add an difermion general parametrisation instruction.
+   **/
+  m_2fparam_infos.push_back(info);
+}
+
 void GeneralSetup::add(SetupHelp::TGCInfo /*info*/) {
   /** Add an chiral cross section instruction.
    **/
@@ -186,6 +192,7 @@ void GeneralSetup::complete_setup() {
   this->complete_acc_box_setup(infos);
   this->complete_acc_box_polyn_setup(infos);
   this->complete_const_eff_setup(infos);
+  this->complete_2fparam_setup(infos);
   this->complete_TGC_setup(infos);
   this->complete_xsection_setup(infos);
 
@@ -351,6 +358,16 @@ void GeneralSetup::complete_const_eff_setup(const PrEW::Data::InfoVec &infos) {
   for (const auto &const_eff : m_const_eff_infos) {
     this->add_pars(const_eff.get_pars());
     this->add_pred_links(const_eff.get_pred_links(infos));
+  }
+}
+
+void GeneralSetup::complete_2fparam_setup(const PrEW::Data::InfoVec &infos) {
+  /** Complete the part of the setup related to difermion parametrisations.
+   **/
+  for (const auto &param_2f : m_2fparam_infos) {
+    this->add_pars(param_2f.get_pars());
+    this->add_pred_links(param_2f.get_pred_links(infos));
+    this->add_coefs(param_2f.get_coefs(m_used_distrs));
   }
 }
 

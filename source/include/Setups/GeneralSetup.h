@@ -41,6 +41,7 @@ class GeneralSetup {
   SetupHelp::AccBoxPolynomialInfoVec m_acc_box_polyn_infos{};
   SetupHelp::ConstEffInfoVec m_const_eff_infos{};
   SetupHelp::CrossSectionInfoVec m_xsection_infos{};
+  SetupHelp::DifermionParamInfoVec m_2fparam_infos{};
   SetupHelp::TGCInfoVec m_TGC_infos{};
 
   // Output specifiers
@@ -68,6 +69,7 @@ public:
   void add(SetupHelp::AccBoxPolynomialInfo info);
   void add(SetupHelp::ConstEffInfo info);
   void add(SetupHelp::CrossSectionInfo info);
+  void add(SetupHelp::DifermionParamInfo info);
   void add(SetupHelp::TGCInfo info);
   // void add(SetupHelp::ConstEffInfo info);
 
@@ -100,6 +102,7 @@ protected:
   void complete_acc_box_setup(const PrEW::Data::InfoVec &infos);
   void complete_acc_box_polyn_setup(const PrEW::Data::InfoVec &infos);
   void complete_const_eff_setup(const PrEW::Data::InfoVec &infos);
+  void complete_2fparam_setup(const PrEW::Data::InfoVec &infos);
   void complete_TGC_setup(const PrEW::Data::InfoVec &infos);
   void complete_xsection_setup(const PrEW::Data::InfoVec &infos);
 
