@@ -32,16 +32,16 @@ DifermionParamInfo::DifermionParamInfo(const std::string &distr_name,
     }
   };
 
-  m_pars = {{par_name("s0", m_par_info.s0_name), m_par_info.s0_val, 1.},
-            {par_name("Ae", m_par_info.Ae_name), m_par_info.Ae_val, 0.0001},
-            {par_name("Af", m_par_info.Af_name), m_par_info.Af_val, 0.0001},
-            {par_name("ef", m_par_info.ef_name), m_par_info.ef_val, 0.0001},
-            {par_name("kL", m_par_info.kL_name), m_par_info.kL_val, 0.0001},
-            {par_name("kR", m_par_info.kR_name), m_par_info.kR_val, 0.0001}};
+  m_pars = {{par_name("s0", m_par_info.s0_name), m_par_info.s0_val, 0.001},
+            {par_name("Ae", m_par_info.Ae_name), m_par_info.Ae_val, 0.001},
+            {par_name("Af", m_par_info.Af_name), m_par_info.Af_val, 0.001},
+            {par_name("ef", m_par_info.ef_name), m_par_info.ef_val, 0.001},
+            {par_name("kL", m_par_info.kL_name), m_par_info.kL_val, 0.001},
+            {par_name("kR", m_par_info.kR_name), m_par_info.kR_val, 0.001}};
 
-  // Create the prediction link (energy to be filled later)
-  PrEW::Data::DistrInfo info_LR{distr_name, PrEW::GlobalVar::Chiral::eLpR, 0};
-  PrEW::Data::DistrInfo info_RL{distr_name, PrEW::GlobalVar::Chiral::eRpL, 0};
+  // Create the prediction link (correct energy to be filled later)
+  PrEW::Data::DistrInfo info_LR = this->get_LR_info(0);
+  PrEW::Data::DistrInfo info_RL = this->get_RL_info(0);
 
   auto fct_link_LR = this->get_fct_link(info_LR);
   auto fct_link_RL = this->get_fct_link(info_RL);
@@ -78,10 +78,8 @@ DifermionParamInfo::get_coefs(const PrEW::Data::PredDistrVec &preds) const {
    **/
   spdlog::debug("DifermionParamInfo: Getting coefficients.");
   int energy = preds.at(0).get_info().m_energy;
-  PrEW::Data::DistrInfo info_LR{m_distr_name, PrEW::GlobalVar::Chiral::eLpR,
-                                energy};
-  PrEW::Data::DistrInfo info_RL{m_distr_name, PrEW::GlobalVar::Chiral::eRpL,
-                                energy};
+  PrEW::Data::DistrInfo info_LR = this->get_LR_info(energy);
+  PrEW::Data::DistrInfo info_RL = this->get_RL_info(energy);
 
   PrEW::Data::CoefDistrVec coefs{}; // output vector
 
@@ -90,14 +88,26 @@ DifermionParamInfo::get_coefs(const PrEW::Data::PredDistrVec &preds) const {
   auto pred_RL = PrEW::Data::DistrUtils::subvec_info(preds, info_RL).at(0);
 
   // Find the distribution differential values
+  // -> Each chiral distribution only needs itself as coefs
   auto LR_diff = DataHelp::PredDistrHelp::pred_to_coef(pred_LR, "signal");
   auto RL_diff = DataHelp::PredDistrHelp::pred_to_coef(pred_RL, "signal");
-
-  // Differential distribution only needed for itself
   coefs.push_back(PrEW::Data::CoefDistr(
       Names::CoefNaming::chi_distr_coef_name(info_LR), info_LR, LR_diff));
   coefs.push_back(PrEW::Data::CoefDistr(
       Names::CoefNaming::chi_distr_coef_name(info_RL), info_RL, RL_diff));
+
+  // Find total chiral cross sections
+  // -> both needed by both
+  auto LR_sum = DataHelp::PredDistrHelp::get_pred_sum(pred_LR, "signal");
+  auto RL_sum = DataHelp::PredDistrHelp::get_pred_sum(pred_RL, "signal");
+  coefs.push_back(PrEW::Data::CoefDistr(
+      Names::CoefNaming::chi_xs_coef_name(info_LR), info_LR, LR_sum));
+  coefs.push_back(PrEW::Data::CoefDistr(
+      Names::CoefNaming::chi_xs_coef_name(info_RL), info_LR, RL_sum));
+  coefs.push_back(PrEW::Data::CoefDistr(
+      Names::CoefNaming::chi_xs_coef_name(info_LR), info_RL, LR_sum));
+  coefs.push_back(PrEW::Data::CoefDistr(
+      Names::CoefNaming::chi_xs_coef_name(info_RL), info_RL, RL_sum));
 
   // Add index coefficients
   coefs.push_back(
@@ -125,8 +135,11 @@ DifermionParamInfo::get_fct_link(const PrEW::Data::DistrInfo &info) const {
   for (const auto &par : m_pars) {
     fct_link.m_pars.push_back(par.get_name());
   }
-  fct_link.m_coefs = {Names::CoefNaming::chi_distr_coef_name(info),
-                      Names::CoefNaming::costheta_index_coef_name()};
+  fct_link.m_coefs = {
+      Names::CoefNaming::chi_distr_coef_name(info),
+      Names::CoefNaming::chi_xs_coef_name(this->get_LR_info(info.m_energy)),
+      Names::CoefNaming::chi_xs_coef_name(this->get_RL_info(info.m_energy)),
+      Names::CoefNaming::costheta_index_coef_name()};
 
   if (info.m_pol_config == PrEW::GlobalVar::Chiral::eLpR) {
     fct_link.m_fct_name = "General2fParam_LR";
@@ -138,6 +151,14 @@ DifermionParamInfo::get_fct_link(const PrEW::Data::DistrInfo &info) const {
   }
 
   return fct_link;
+}
+
+PrEW::Data::DistrInfo DifermionParamInfo::get_LR_info(int energy) const {
+  return {m_distr_name, PrEW::GlobalVar::Chiral::eLpR, energy};
+}
+
+PrEW::Data::DistrInfo DifermionParamInfo::get_RL_info(int energy) const {
+  return {m_distr_name, PrEW::GlobalVar::Chiral::eRpL, energy};
 }
 
 //------------------------------------------------------------------------------

@@ -32,7 +32,7 @@ struct DifermionPars {
   std::string kR_name {"default"};
   
   // Starting values of 2f parameters (for given distribution)
-  static constexpr double s0_def = 10000.;
+  static constexpr double s0_def = 1.0;
   static constexpr double Ae_def = 0;
   static constexpr double Af_def = 0;
   static constexpr double ef_def = 0;
@@ -88,6 +88,9 @@ public:
 
 protected:
   PrEW::Data::FctLink get_fct_link(const PrEW::Data::DistrInfo &info) const;
+  
+  PrEW::Data::DistrInfo get_LR_info(int energy) const;
+  PrEW::Data::DistrInfo get_RL_info(int energy) const;
 };
 
 using DifermionParamInfoVec = std::vector<DifermionParamInfo>;
