@@ -29,7 +29,7 @@ static const IDMap default_par_map{
     {"Asymmetries", {"DeltaA"}},                                        //
     {"Ae", {"Ae_", "Ae"}},                                                    //
     {"Af", {"Af_", "Af"}},                                                    //
-    {"2fPars", {"Sigma0", "AR", "kL", "kR"}},
+    {"2fPars", {"s0_", "ef_", "kL_", "kR_"}},
     {"XSectionScalings", {"ScaleTotChiXS"}}                             //
 };
 
