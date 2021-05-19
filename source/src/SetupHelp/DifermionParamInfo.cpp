@@ -19,25 +19,25 @@ namespace SetupHelp {
 // Constructors
 
 DifermionParamInfo::DifermionParamInfo(const std::string &distr_name,
-               int costheta_index)
-    : m_distr_name(distr_name), m_costheta_index(costheta_index) {
-      
-      
-   m_pars = {
-     PrEW::Fit::FitPar("Sigma0", 2500., 1.),
-     PrEW::Fit::FitPar("Ae", 0.21, 0.0001),
-     PrEW::Fit::FitPar("Af", 0.20, 0.0001),
-     PrEW::Fit::FitPar("AR", 0.25, 0.0001),
-     PrEW::Fit::FitPar("kL", 0.02, 0.0001),
-     PrEW::Fit::FitPar("kR", 0.02, 0.0001)
-   };
-   
-  // m_pars[0].fix();
-  // m_pars[1].fix();
-  // m_pars[2].fix();
-  // m_pars[3].fix();
-  // m_pars[4].fix();
-  // m_pars[5].fix();
+                                       const DifermionPars &par_info)
+    : m_distr_name(distr_name), m_par_info(par_info) {
+
+  // Helper function to deal with default values of parameter names
+  auto par_name = [distr_name](const std::string &par,
+                               const std::string &name) {
+    if (name == "default") {
+      return par + "_" + distr_name;
+    } else {
+      return name;
+    }
+  };
+
+  m_pars = {{par_name("s0", m_par_info.s0_name), m_par_info.s0_val, 1.},
+            {par_name("Ae", m_par_info.Ae_name), m_par_info.Ae_val, 0.0001},
+            {par_name("Af", m_par_info.Af_name), m_par_info.Af_val, 0.0001},
+            {par_name("ef", m_par_info.ef_name), m_par_info.ef_val, 0.0001},
+            {par_name("kL", m_par_info.kL_name), m_par_info.kL_val, 0.0001},
+            {par_name("kR", m_par_info.kR_name), m_par_info.kR_val, 0.0001}};
 
   // Create the prediction link (energy to be filled later)
   PrEW::Data::DistrInfo info_LR{distr_name, PrEW::GlobalVar::Chiral::eLpR, 0};
@@ -53,7 +53,7 @@ DifermionParamInfo::DifermionParamInfo(const std::string &distr_name,
 //------------------------------------------------------------------------------
 // Access functions
 
-const PrEW::Fit::ParVec & DifermionParamInfo::get_pars() const { return m_pars; }
+const PrEW::Fit::ParVec &DifermionParamInfo::get_pars() const { return m_pars; }
 
 PrEW::Data::PredLinkVec
 DifermionParamInfo::get_pred_links(const PrEW::Data::InfoVec &infos) const {
@@ -89,11 +89,11 @@ DifermionParamInfo::get_coefs(const PrEW::Data::PredDistrVec &preds) const {
   auto pred_LR = PrEW::Data::DistrUtils::subvec_info(preds, info_LR).at(0);
   auto pred_RL = PrEW::Data::DistrUtils::subvec_info(preds, info_RL).at(0);
 
-  // Find the distribution sums and differential values
+  // Find the distribution differential values
   auto LR_diff = DataHelp::PredDistrHelp::pred_to_coef(pred_LR, "signal");
   auto RL_diff = DataHelp::PredDistrHelp::pred_to_coef(pred_RL, "signal");
 
-  // Differential distribution only need for itself
+  // Differential distribution only needed for itself
   coefs.push_back(PrEW::Data::CoefDistr(
       Names::CoefNaming::chi_distr_coef_name(info_LR), info_LR, LR_diff));
   coefs.push_back(PrEW::Data::CoefDistr(
@@ -102,10 +102,10 @@ DifermionParamInfo::get_coefs(const PrEW::Data::PredDistrVec &preds) const {
   // Add index coefficients
   coefs.push_back(
       PrEW::Data::CoefDistr(Names::CoefNaming::costheta_index_coef_name(),
-                            info_LR, m_costheta_index));
+                            info_LR, m_par_info._costheta_index));
   coefs.push_back(
       PrEW::Data::CoefDistr(Names::CoefNaming::costheta_index_coef_name(),
-                            info_RL, m_costheta_index));
+                            info_RL, m_par_info._costheta_index));
 
   return coefs;
 }
@@ -122,8 +122,10 @@ DifermionParamInfo::get_fct_link(const PrEW::Data::DistrInfo &info) const {
       up the bin predictions.
    **/
   PrEW::Data::FctLink fct_link{};
-  for (const auto & par: m_pars) {fct_link.m_pars.push_back(par.get_name());}
-  fct_link.m_coefs = {Names::CoefNaming::chi_distr_coef_name(info, "signal"),
+  for (const auto &par : m_pars) {
+    fct_link.m_pars.push_back(par.get_name());
+  }
+  fct_link.m_coefs = {Names::CoefNaming::chi_distr_coef_name(info),
                       Names::CoefNaming::costheta_index_coef_name()};
 
   if (info.m_pol_config == PrEW::GlobalVar::Chiral::eLpR) {
@@ -131,7 +133,8 @@ DifermionParamInfo::get_fct_link(const PrEW::Data::DistrInfo &info) const {
   } else if (info.m_pol_config == PrEW::GlobalVar::Chiral::eRpL) {
     fct_link.m_fct_name = "General2fParam_RL";
   } else {
-    throw std::invalid_argument("DifermionParamInfo: Need PrEW eLpR/eRpL chiral configs!");
+    throw std::invalid_argument(
+        "DifermionParamInfo: Need PrEW eLpR/eRpL chiral configs!");
   }
 
   return fct_link;
