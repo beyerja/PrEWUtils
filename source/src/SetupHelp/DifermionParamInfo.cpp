@@ -23,21 +23,23 @@ DifermionParamInfo::DifermionParamInfo(const std::string &distr_name,
     : m_distr_name(distr_name), m_par_info(par_info) {
 
   // Helper function to deal with default values of parameter names
-  auto par_name = [distr_name](const std::string &par,
-                               const std::string &name) {
-    if (name == "default") {
+  auto p_name = [distr_name](const std::string &par, const std::string &name) {
+    if (name == DifermionPars::def_name) {
       return par + "_" + distr_name;
     } else {
       return name;
     }
   };
 
-  m_pars = {{par_name("s0", m_par_info.s0_name), m_par_info.s0_val, 0.001},
-            {par_name("Ae", m_par_info.Ae_name), m_par_info.Ae_val, 0.001},
-            {par_name("Af", m_par_info.Af_name), m_par_info.Af_val, 0.001},
-            {par_name("ef", m_par_info.ef_name), m_par_info.ef_val, 0.001},
-            {par_name("kL", m_par_info.kL_name), m_par_info.kL_val, 0.001},
-            {par_name("kR", m_par_info.kR_name), m_par_info.kR_val, 0.001}};
+  using FitPar = PrEW::Fit::FitPar;
+  auto s0 = FitPar(p_name("s0", m_par_info.s0_name), m_par_info.s0_val, 0.001);
+  auto Ae = FitPar(p_name("Ae", m_par_info.Ae_name), m_par_info.Ae_val, 0.001);
+  auto Af = FitPar(p_name("Af", m_par_info.Af_name), m_par_info.Af_val, 0.001);
+  auto ef = FitPar(p_name("ef", m_par_info.ef_name), m_par_info.ef_val, 0.001);
+  auto kL = FitPar(p_name("kL", m_par_info.kL_name), m_par_info.kL_val, 0.001);
+  auto kR = FitPar(p_name("kR", m_par_info.kR_name), m_par_info.kR_val, 0.001);
+
+  m_pars = {s0, Ae, Af, ef, kL, kR};
 
   // Create the prediction link (correct energy to be filled later)
   PrEW::Data::DistrInfo info_LR = this->get_LR_info(0);
