@@ -20,21 +20,23 @@ using CategorizedPars = std::map<std::string, PrEW::Fit::ParVec>;
 
 // Map from "common name" to identifiers
 static const IDMap default_par_map{
-    {"Lumi", {"Lumi"}},                                                 //
-    {"Pols", {"ePol", "pPol"}},                                         //
-    {"AccBoxes", {"Acceptance_center", "Acceptance_width",              //
-                  "_dCenter", "_dWidth"}},                              //
-    {"Efficiencies", {"ConstEff"}},                                     //
-    {"TGCs", {"Delta-g1Z", "Delta-kappa_gamma", "Delta-lambda_gamma"}}, //
-    {"Asymmetries", {"DeltaA"}},                                        //
-    {"Ae", {"Ae_"}},                                                    //
-    {"Af", {"Af_"}},                                                    //
-    {"XSectionScalings", {"ScaleTotChiXS"}}                             //
-};
+    {"Lumi", {"Lumi"}},
+    {"Pols", {"ePol", "pPol"}},
+    {"AccBoxes",
+     {"Acceptance_center", "Acceptance_width", "_dCenter", "_dWidth"}},
+    {"Efficiencies", {"ConstEff"}},
+    {"TGCs", {"Delta-g1Z", "Delta-kappa_gamma", "Delta-lambda_gamma"}},
+    {"Asymmetries", {"DeltaA"}},
+    {"2f_scale", {"s0_"}},
+    {"2f_shape", {"Ae_", "Af_", "ef_", "kL_", "kR_"}},
+    {"XSectionScalings", {"ScaleTotChiXS"}}};
 
 static const Ordering default_ordering{
-    "TGCs", "Asymmetries",  "Ae",      "Af", "Pols", "XSectionScalings",
-    "Lumi", "Efficiencies", "AccBoxes"};
+  "Lumi", "Pols", // Machine
+  "TGCs", "Asymmetries", "2f_shape", // Shape effects
+  "2f_scale", "XSectionScalings", // Scale effect
+  "Efficiencies", "AccBoxes" // Other systematics
+};
 
 bool par_fits_ID(const PrEW::Fit::FitPar &par, const IDVec &ids);
 

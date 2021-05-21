@@ -23,6 +23,7 @@ int FitModifier::get_energy() const { return m_energy; }
 //------------------------------------------------------------------------------
 
 void FitModifier::add(SetupHelp::AfInfo info) { m_Af_infos.push_back(info); }
+void FitModifier::add(SetupHelp::DifermionParamInfo info) { m_difermion_param_infos.push_back(info); }
 
 //------------------------------------------------------------------------------
 
@@ -42,7 +43,9 @@ void FitModifier::modify_setup(PrEW::Connect::DataConnector *connector,
                                PrEW::Fit::ParVec *pars) const {
   /** Modify the given setup according to the rules provided previously.
    **/
+  spdlog::debug("Applying modifications.");
   this->apply_Af_mod(connector, pars);
+  this->apply_2f_mod(connector, pars);
 
   spdlog::debug("Reordering parameters.");
   this->order_pars(pars);
@@ -66,6 +69,22 @@ void FitModifier::apply_Af_mod(PrEW::Connect::DataConnector *connector,
     // Add new connector info
     auto new_coefs = Af_info.get_coefs(connector->get_pred_distrs());
     auto new_pred_links = Af_info.get_pred_links(infos);
+    this->add_to_connector(connector, new_coefs, new_pred_links);
+  }
+}
+
+void FitModifier::apply_2f_mod(PrEW::Connect::DataConnector *connector,
+                               PrEW::Fit::ParVec *pars) const {
+  /** Modify the setup with new Af info.
+   **/
+  auto infos = DataHelp::DistrHelp::find_infos(connector->get_pred_distrs());
+  for (const auto &difermion_param_info : m_difermion_param_infos) {
+    // Add new parameters
+    DataHelp::FitParHelp::add_pars_to_vec(difermion_param_info.get_pars(), *pars);
+
+    // Add new connector info
+    auto new_coefs = difermion_param_info.get_coefs(connector->get_pred_distrs());
+    auto new_pred_links = difermion_param_info.get_pred_links(infos);
     this->add_to_connector(connector, new_coefs, new_pred_links);
   }
 }
