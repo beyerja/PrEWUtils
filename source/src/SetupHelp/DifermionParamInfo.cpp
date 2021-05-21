@@ -39,6 +39,21 @@ DifermionParamInfo::DifermionParamInfo(const std::string &distr_name,
   auto kL = FitPar(p_name("kL", m_par_info.kL_name), m_par_info.kL_val, 0.001);
   auto kR = FitPar(p_name("kR", m_par_info.kR_name), m_par_info.kR_val, 0.001);
 
+  // clang-format off
+  if (m_par_info.s0_constr != DifermionPars::ParConstr()) { 
+    auto c = m_par_info.s0_constr; s0.set_constrgauss(c.first, c.second); }
+  if (m_par_info.Ae_constr != DifermionPars::ParConstr()) { 
+    auto c = m_par_info.Ae_constr; Ae.set_constrgauss(c.first, c.second); }
+  if (m_par_info.Af_constr != DifermionPars::ParConstr()) { 
+    auto c = m_par_info.Af_constr; Af.set_constrgauss(c.first, c.second); }
+  if (m_par_info.ef_constr != DifermionPars::ParConstr()) { 
+    auto c = m_par_info.ef_constr; ef.set_constrgauss(c.first, c.second); }
+  if (m_par_info.kL_constr != DifermionPars::ParConstr()) { 
+    auto c = m_par_info.kL_constr; kL.set_constrgauss(c.first, c.second); }
+  if (m_par_info.kR_constr != DifermionPars::ParConstr()) { 
+    auto c = m_par_info.kR_constr; kR.set_constrgauss(c.first, c.second); }
+  // clang-format on
+
   m_pars = {s0, Ae, Af, ef, kL, kR};
 
   // Create the prediction link (correct energy to be filled later)

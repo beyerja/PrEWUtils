@@ -37,6 +37,11 @@ struct DifermionPars {
   // Index of cosine theta coordinate
   int _costheta_index{0};
 
+  // Potential parameter constraints
+  using ParConstr = std::pair<double, double>;
+  ParConstr s0_constr{}, Ae_constr{}, Af_constr{}, ef_constr{}, kL_constr{},
+      kR_constr{};
+
   // clang-format off
   // Optional arguments
   DifermionPars &s0(const std::string &name, double val = s0_def) {
@@ -61,6 +66,18 @@ struct DifermionPars {
 
   DifermionPars &costheta_index(int val) {_costheta_index = val; return *this;}
   
+  DifermionPars &constr_s0(double val, double unc) {
+    s0_constr = {val,unc}; return *this; }
+  DifermionPars &constr_Ae(double val, double unc) {
+    Ae_constr = {val,unc}; return *this; }
+  DifermionPars &constr_Af(double val, double unc) {
+    Af_constr = {val,unc}; return *this; }
+  DifermionPars &constr_ef(double val, double unc) {
+    ef_constr = {val,unc}; return *this; }
+  DifermionPars &constr_kL(double val, double unc) {
+    kL_constr = {val,unc}; return *this; }
+  DifermionPars &constr_kR(double val, double unc) {
+    kR_constr = {val,unc}; return *this; }
   // clang-format on
 };
 
