@@ -42,6 +42,9 @@ struct DifermionPars {
   ParConstr s0_constr{}, Ae_constr{}, Af_constr{}, ef_constr{}, kL_constr{},
       kR_constr{};
 
+  // Potential parameter fixing
+  bool s0_fixed{}, Ae_fixed{}, Af_fixed{}, ef_fixed{}, kL_fixed{}, kR_fixed{};
+
   // clang-format off
   // Optional arguments
   DifermionPars &s0(const std::string &name, double val = s0_def) {
@@ -78,6 +81,20 @@ struct DifermionPars {
     kL_constr = {val,unc}; return *this; }
   DifermionPars &constr_kR(double val, double unc) {
     kR_constr = {val,unc}; return *this; }
+  
+  DifermionPars &fix_s0() { s0_fixed = true; return *this; }
+  DifermionPars &fix_Ae() { Ae_fixed = true; return *this; }
+  DifermionPars &fix_Af() { Af_fixed = true; return *this; }
+  DifermionPars &fix_ef() { ef_fixed = true; return *this; }
+  DifermionPars &fix_kL() { kL_fixed = true; return *this; }
+  DifermionPars &fix_kR() { kR_fixed = true; return *this; }
+  
+  DifermionPars &fix_s0(double val) { s0_fixed = true; return this->s0(val); }
+  DifermionPars &fix_Ae(double val) { Ae_fixed = true; return this->Ae(val); }
+  DifermionPars &fix_Af(double val) { Af_fixed = true; return this->Af(val); }
+  DifermionPars &fix_ef(double val) { ef_fixed = true; return this->ef(val); }
+  DifermionPars &fix_kL(double val) { kL_fixed = true; return this->kL(val); }
+  DifermionPars &fix_kR(double val) { kR_fixed = true; return this->kR(val); }
   // clang-format on
 };
 

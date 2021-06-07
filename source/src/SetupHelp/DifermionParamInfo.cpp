@@ -52,6 +52,13 @@ DifermionParamInfo::DifermionParamInfo(const std::string &distr_name,
     auto c = m_par_info.kL_constr; kL.set_constrgauss(c.first, c.second); }
   if (m_par_info.kR_constr != DifermionPars::ParConstr()) { 
     auto c = m_par_info.kR_constr; kR.set_constrgauss(c.first, c.second); }
+    
+  if (m_par_info.s0_fixed) { s0.fix(); }
+  if (m_par_info.Ae_fixed) { Ae.fix(); }
+  if (m_par_info.Af_fixed) { Af.fix(); }
+  if (m_par_info.ef_fixed) { ef.fix(); }
+  if (m_par_info.kL_fixed) { kL.fix(); }
+  if (m_par_info.kR_fixed) { kR.fix(); }
   // clang-format on
 
   m_pars = {s0, Ae, Af, ef, kL, kR};
