@@ -145,13 +145,10 @@ void GeneralSetup::add(SetupHelp::ConstEffInfo info) {
   m_const_eff_infos.push_back(info);
 }
 
-void GeneralSetup::add(SetupHelp::TGCInfo /*info*/) {
+void GeneralSetup::add(SetupHelp::TGCInfo info) {
   /** Add an chiral cross section instruction.
    **/
-  // m_TGC_infos.push_back(info);
-  spdlog::error(
-    "TGC coefs currently deprecated (RK coefs found to be inaccurate)."
-    "Will proceed without TGCs." );
+  m_TGC_infos.push_back(info);
 }
 
 void GeneralSetup::add(SetupHelp::CrossSectionInfo info) {
