@@ -10,7 +10,17 @@
 #include "Fit/PoissonNLLMinimizer.h"
 #include "ToyMeas/ParFlct.h"
 
+// External libraries
 #include "spdlog/spdlog.h"
+
+// Ignore non-crucial warnings from the external library
+#pragma GCC diagnostic ignored "-Wfloat-conversion"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#include <chrono>
+#include <indicators/cursor_control.hpp>
+#include <indicators/progress_bar.hpp>
+#include <thread>
+#pragma GCC diagnostic pop
 
 namespace PrEWUtils {
 namespace Runners {
@@ -105,8 +115,20 @@ ParallelRunner<SetupClass>::run_toy_fits(int energy, int n_toys,
   spdlog::debug("ParallelRunner: All threads registered @ E={}, waiting for "
                 "them to return results.",
                 energy);
-  for (size_t i = 0; i < results.size(); i++) {
+
+  // TODO
+  // COMMENTS
+  // TODO
+
+  auto n_results = results.size();
+  using namespace indicators::option;
+  indicators::ProgressBar bar{BarWidth{30}, PrefixText{"Fits finished: "},
+                              ShowElapsedTime{true}, MaxProgress{n_results}};
+  for (size_t i = 0; i < n_results; i++) {
     results[i] = result_futures[i].get();
+    bar.set_option(
+        PostfixText{std::to_string(i + 1) + "/" + std::to_string(n_results)});
+    bar.tick();
   }
 
   return results;
@@ -222,7 +244,7 @@ ParallelRunner<SetupClass>::single_fit_task(int energy) const {
     final_result = this->single_minimization(&container, minuit_factory);
   }
 
-  spdlog::info("ParallelRunner: Single minimization @ E={} finished.", energy);
+  spdlog::debug("ParallelRunner: Single minimization @ E={} finished.", energy);
   return final_result;
 }
 

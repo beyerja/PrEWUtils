@@ -39,6 +39,11 @@ include_directories(
   source/include
 )
 
+# Headers from external libraries
+include_directories(
+  external/indicators/include
+)
+
 # Code subdirectories with own CMakelists
 add_subdirectory(source)
 

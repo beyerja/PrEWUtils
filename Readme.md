@@ -4,6 +4,10 @@ This package provides some tools that allow for an easy usage of the `PrEW` pack
 
 ## Installation
 
+<!-- TODO TODO TODO Comment on downloading module library -->
+<!-- TODO TODO TODO DO INCLUDE module IN PrEWMultiSetupTest and PrEWRunExample -->
+<!-- git clone -b 'v2.2' --depth 1 https://github.com/p-ranav/indicators.git -->
+
 0. Make sure you installed `PrEW` (preferably in a directory next to this one).
  This is essential because `PrEWUtils` depends on both `PrEW` and the packages used within it.
 1. Make sure your software is up-to-date (ROOT, gcc, cmake, ...) *or* load using macro (only on NAF):
