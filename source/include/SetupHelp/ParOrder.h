@@ -28,7 +28,7 @@ static const IDMap default_par_map{
     {"TGCs", {"Delta-g1Z", "Delta-kappa_gamma", "Delta-lambda_gamma"}},
     {"Asymmetries", {"DeltaA"}},
     {"2f_scale", {"s0_"}},
-    {"2f_shape", {"Ae_", "Af_", "ef_", "AFB_", "kL_", "kR_", "k0_"}},
+    {"2f_shape", {"Ae_", "Af_", "ef_", "AFB_", "kL_", "kR_", "k0_", "dk_"}},
     {"XSectionScalings", {"ScaleTotChiXS"}}};
 
 static const Ordering default_ordering{

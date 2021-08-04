@@ -26,24 +26,24 @@ struct DifermionPars {
   // Names of 2f parameters (for given distribution)
   inline static const std::string def_name = "default";
   std::string s0_name{def_name}, Ae_name{def_name}, Af_name{def_name},
-      ef_name{def_name}, kL_name{def_name}, kR_name{def_name};
+      ef_name{def_name}, k0_name{def_name}, dk_name{def_name};
 
   // Starting values of 2f parameters (for given distribution)
   static constexpr double s0_def{1.0}, Ae_def{0}, Af_def{0}, ef_def{0},
-      kL_def{0}, kR_def{0};
+      k0_def{0}, dk_def{0};
   double s0_val{s0_def}, Ae_val{Ae_def}, Af_val{Af_def}, ef_val{ef_def},
-      kL_val{kL_def}, kR_val{kR_def};
+      k0_val{k0_def}, dk_val{dk_def};
 
   // Index of cosine theta coordinate
   int _costheta_index{0};
 
   // Potential parameter constraints
   using ParConstr = std::pair<double, double>;
-  ParConstr s0_constr{}, Ae_constr{}, Af_constr{}, ef_constr{}, kL_constr{},
-      kR_constr{};
+  ParConstr s0_constr{}, Ae_constr{}, Af_constr{}, ef_constr{}, k0_constr{},
+      dk_constr{};
 
   // Potential parameter fixing
-  bool s0_fixed{}, Ae_fixed{}, Af_fixed{}, ef_fixed{}, kL_fixed{}, kR_fixed{};
+  bool s0_fixed{}, Ae_fixed{}, Af_fixed{}, ef_fixed{}, k0_fixed{}, dk_fixed{};
 
   // clang-format off
   // Optional arguments
@@ -55,17 +55,17 @@ struct DifermionPars {
     Af_name = name; Af_val = val; return *this; }
   DifermionPars &ef(const std::string &name, double val = ef_def) {
     ef_name = name; ef_val = val; return *this; }
-  DifermionPars &kL(const std::string &name, double val = kL_def) {
-    kL_name = name; kL_val = val; return *this; }
-  DifermionPars &kR(const std::string &name, double val = kR_def) {
-    kR_name = name; kR_val = val; return *this; }
+  DifermionPars &k0(const std::string &name, double val = k0_def) {
+    k0_name = name; k0_val = val; return *this; }
+  DifermionPars &dk(const std::string &name, double val = dk_def) {
+    dk_name = name; dk_val = val; return *this; }
 
   DifermionPars &s0(double val) { s0_val = val; return *this; }
   DifermionPars &Ae(double val) { Ae_val = val; return *this; }
   DifermionPars &Af(double val) { Af_val = val; return *this; }
   DifermionPars &ef(double val) { ef_val = val; return *this; }
-  DifermionPars &kL(double val) { kL_val = val; return *this; }
-  DifermionPars &kR(double val) { kR_val = val; return *this; }
+  DifermionPars &k0(double val) { k0_val = val; return *this; }
+  DifermionPars &dk(double val) { dk_val = val; return *this; }
 
   DifermionPars &costheta_index(int val) {_costheta_index = val; return *this;}
   
@@ -77,24 +77,24 @@ struct DifermionPars {
     Af_constr = {val,unc}; return *this; }
   DifermionPars &constr_ef(double val, double unc) {
     ef_constr = {val,unc}; return *this; }
-  DifermionPars &constr_kL(double val, double unc) {
-    kL_constr = {val,unc}; return *this; }
-  DifermionPars &constr_kR(double val, double unc) {
-    kR_constr = {val,unc}; return *this; }
+  DifermionPars &constr_k0(double val, double unc) {
+    k0_constr = {val,unc}; return *this; }
+  DifermionPars &constr_dk(double val, double unc) {
+    dk_constr = {val,unc}; return *this; }
   
   DifermionPars &fix_s0() { s0_fixed = true; return *this; }
   DifermionPars &fix_Ae() { Ae_fixed = true; return *this; }
   DifermionPars &fix_Af() { Af_fixed = true; return *this; }
   DifermionPars &fix_ef() { ef_fixed = true; return *this; }
-  DifermionPars &fix_kL() { kL_fixed = true; return *this; }
-  DifermionPars &fix_kR() { kR_fixed = true; return *this; }
+  DifermionPars &fix_k0() { k0_fixed = true; return *this; }
+  DifermionPars &fix_dk() { dk_fixed = true; return *this; }
   
   DifermionPars &fix_s0(double val) { s0_fixed = true; return this->s0(val); }
   DifermionPars &fix_Ae(double val) { Ae_fixed = true; return this->Ae(val); }
   DifermionPars &fix_Af(double val) { Af_fixed = true; return this->Af(val); }
   DifermionPars &fix_ef(double val) { ef_fixed = true; return this->ef(val); }
-  DifermionPars &fix_kL(double val) { kL_fixed = true; return this->kL(val); }
-  DifermionPars &fix_kR(double val) { kR_fixed = true; return this->kR(val); }
+  DifermionPars &fix_k0(double val) { k0_fixed = true; return this->k0(val); }
+  DifermionPars &fix_dk(double val) { dk_fixed = true; return this->dk(val); }
   // clang-format on
 };
 

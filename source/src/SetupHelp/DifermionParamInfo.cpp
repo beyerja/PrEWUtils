@@ -36,8 +36,8 @@ DifermionParamInfo::DifermionParamInfo(const std::string &distr_name,
   auto Ae = FitPar(p_name("Ae", m_par_info.Ae_name), m_par_info.Ae_val, 0.001);
   auto Af = FitPar(p_name("Af", m_par_info.Af_name), m_par_info.Af_val, 0.001);
   auto ef = FitPar(p_name("ef", m_par_info.ef_name), m_par_info.ef_val, 0.001);
-  auto kL = FitPar(p_name("kL", m_par_info.kL_name), m_par_info.kL_val, 0.001);
-  auto kR = FitPar(p_name("kR", m_par_info.kR_name), m_par_info.kR_val, 0.001);
+  auto k0 = FitPar(p_name("k0", m_par_info.k0_name), m_par_info.k0_val, 0.001);
+  auto dk = FitPar(p_name("dk", m_par_info.dk_name), m_par_info.dk_val, 0.001);
 
   // clang-format off
   if (m_par_info.s0_constr != DifermionPars::ParConstr()) { 
@@ -48,20 +48,20 @@ DifermionParamInfo::DifermionParamInfo(const std::string &distr_name,
     auto c = m_par_info.Af_constr; Af.set_constrgauss(c.first, c.second); }
   if (m_par_info.ef_constr != DifermionPars::ParConstr()) { 
     auto c = m_par_info.ef_constr; ef.set_constrgauss(c.first, c.second); }
-  if (m_par_info.kL_constr != DifermionPars::ParConstr()) { 
-    auto c = m_par_info.kL_constr; kL.set_constrgauss(c.first, c.second); }
-  if (m_par_info.kR_constr != DifermionPars::ParConstr()) { 
-    auto c = m_par_info.kR_constr; kR.set_constrgauss(c.first, c.second); }
+  if (m_par_info.k0_constr != DifermionPars::ParConstr()) { 
+    auto c = m_par_info.k0_constr; k0.set_constrgauss(c.first, c.second); }
+  if (m_par_info.dk_constr != DifermionPars::ParConstr()) { 
+    auto c = m_par_info.dk_constr; dk.set_constrgauss(c.first, c.second); }
     
   if (m_par_info.s0_fixed) { s0.fix(); }
   if (m_par_info.Ae_fixed) { Ae.fix(); }
   if (m_par_info.Af_fixed) { Af.fix(); }
   if (m_par_info.ef_fixed) { ef.fix(); }
-  if (m_par_info.kL_fixed) { kL.fix(); }
-  if (m_par_info.kR_fixed) { kR.fix(); }
+  if (m_par_info.k0_fixed) { k0.fix(); }
+  if (m_par_info.dk_fixed) { dk.fix(); }
   // clang-format on
 
-  m_pars = {s0, Ae, Af, ef, kL, kR};
+  m_pars = {s0, Ae, Af, ef, k0, dk};
 
   // Create the prediction link (correct energy to be filled later)
   PrEW::Data::DistrInfo info_LR = this->get_LR_info(0);
