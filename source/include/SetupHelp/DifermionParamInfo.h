@@ -22,6 +22,9 @@ struct DifermionPars {
       Essentially allows kinda Python-style optional arguments.
       Inspired by:
         https://softwareengineering.stackexchange.com/questions/329709/python-style-keyword-args-in-c-good-practice-or-bad-idea
+      In case of unpolarised scenario:
+        - use ef_name to specify an AFB parameter name (same for fix or constr)
+        - still set all three parameter values {Ae,Af,ef} accurately.
    **/
   // Names of 2f parameters (for given distribution)
   inline static const std::string def_name = "default";
@@ -104,6 +107,7 @@ class DifermionParamInfo {
    **/
   std::string m_distr_name{};
   DifermionPars m_par_info{};
+  bool m_polarised{};
 
   PrEW::Fit::ParVec m_pars{};
   PrEW::Data::PredLinkVec m_pred_links{};
@@ -111,7 +115,8 @@ class DifermionParamInfo {
 public:
   // Constructors
   DifermionParamInfo(const std::string &distr_name,
-                     const DifermionPars &par_info = DifermionPars());
+                     const DifermionPars &par_info = DifermionPars(),
+                     bool polarised = true);
 
   // Access functions
   const PrEW::Fit::ParVec &get_pars() const;
@@ -122,6 +127,11 @@ public:
   get_coefs(const PrEW::Data::PredDistrVec &preds) const;
 
 protected:
+  std::string p_name(const std::string &par, const std::string &name) const;
+
+  void create_polarised_pars();
+  void create_unpolarised_pars();
+
   PrEW::Data::FctLink get_fct_link(const PrEW::Data::DistrInfo &info) const;
 
   PrEW::Data::DistrInfo get_LR_info(int energy) const;
