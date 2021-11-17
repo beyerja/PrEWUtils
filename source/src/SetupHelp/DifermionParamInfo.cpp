@@ -19,49 +19,14 @@ namespace SetupHelp {
 // Constructors
 
 DifermionParamInfo::DifermionParamInfo(const std::string &distr_name,
-                                       const DifermionPars &par_info)
-    : m_distr_name(distr_name), m_par_info(par_info) {
-
-  // Helper function to deal with default values of parameter names
-  auto p_name = [distr_name](const std::string &par, const std::string &name) {
-    if (name == DifermionPars::def_name) {
-      return par + "_" + distr_name;
-    } else {
-      return name;
-    }
-  };
-
-  using FitPar = PrEW::Fit::FitPar;
-  auto s0 = FitPar(p_name("s0", m_par_info.s0_name), m_par_info.s0_val, 0.001);
-  auto Ae = FitPar(p_name("Ae", m_par_info.Ae_name), m_par_info.Ae_val, 0.001);
-  auto Af = FitPar(p_name("Af", m_par_info.Af_name), m_par_info.Af_val, 0.001);
-  auto ef = FitPar(p_name("ef", m_par_info.ef_name), m_par_info.ef_val, 0.001);
-  auto k0 = FitPar(p_name("k0", m_par_info.k0_name), m_par_info.k0_val, 0.001);
-  auto dk = FitPar(p_name("dk", m_par_info.dk_name), m_par_info.dk_val, 0.001);
-
-  // clang-format off
-  if (m_par_info.s0_constr != DifermionPars::ParConstr()) { 
-    auto c = m_par_info.s0_constr; s0.set_constrgauss(c.first, c.second); }
-  if (m_par_info.Ae_constr != DifermionPars::ParConstr()) { 
-    auto c = m_par_info.Ae_constr; Ae.set_constrgauss(c.first, c.second); }
-  if (m_par_info.Af_constr != DifermionPars::ParConstr()) { 
-    auto c = m_par_info.Af_constr; Af.set_constrgauss(c.first, c.second); }
-  if (m_par_info.ef_constr != DifermionPars::ParConstr()) { 
-    auto c = m_par_info.ef_constr; ef.set_constrgauss(c.first, c.second); }
-  if (m_par_info.k0_constr != DifermionPars::ParConstr()) { 
-    auto c = m_par_info.k0_constr; k0.set_constrgauss(c.first, c.second); }
-  if (m_par_info.dk_constr != DifermionPars::ParConstr()) { 
-    auto c = m_par_info.dk_constr; dk.set_constrgauss(c.first, c.second); }
-    
-  if (m_par_info.s0_fixed) { s0.fix(); }
-  if (m_par_info.Ae_fixed) { Ae.fix(); }
-  if (m_par_info.Af_fixed) { Af.fix(); }
-  if (m_par_info.ef_fixed) { ef.fix(); }
-  if (m_par_info.k0_fixed) { k0.fix(); }
-  if (m_par_info.dk_fixed) { dk.fix(); }
-  // clang-format on
-
-  m_pars = {s0, Ae, Af, ef, k0, dk};
+                                       const DifermionPars &par_info,
+                                       bool polarised)
+    : m_distr_name(distr_name), m_par_info(par_info), m_polarised(polarised) {
+  if (m_polarised) {
+    this->create_polarised_pars();
+  } else {
+    this->create_unpolarised_pars();
+  }
 
   // Create the prediction link (correct energy to be filled later)
   PrEW::Data::DistrInfo info_LR = this->get_LR_info(0);
@@ -148,6 +113,85 @@ DifermionParamInfo::get_coefs(const PrEW::Data::PredDistrVec &preds) const {
 // Internal functions
 //------------------------------------------------------------------------------
 
+std::string DifermionParamInfo::p_name(const std::string &par,
+                                       const std::string &name) const {
+  /** Helper function to deal with default values of parameter names.
+   **/
+  if (name == DifermionPars::def_name) {
+    return par + "_" + m_distr_name;
+  } else {
+    return name;
+  }
+}
+
+void DifermionParamInfo::create_polarised_pars() {
+  /** Create the fit parameters which are necessary for the polarised scenario.
+   **/
+
+  using FitPar = PrEW::Fit::FitPar;
+  const auto &pinfo = m_par_info;
+
+  auto s0 = FitPar(this->p_name("s0", pinfo.s0_name), pinfo.s0_val, 0.001);
+  auto Ae = FitPar(this->p_name("Ae", pinfo.Ae_name), pinfo.Ae_val, 0.001);
+  auto Af = FitPar(this->p_name("Af", pinfo.Af_name), pinfo.Af_val, 0.001);
+  auto ef = FitPar(this->p_name("ef", pinfo.ef_name), pinfo.ef_val, 0.001);
+  auto k0 = FitPar(this->p_name("k0", pinfo.k0_name), pinfo.k0_val, 0.001);
+  auto dk = FitPar(this->p_name("dk", pinfo.dk_name), pinfo.dk_val, 0.001);
+
+  // clang-format off
+  if (pinfo.s0_constr != DifermionPars::ParConstr()) { 
+   auto c = pinfo.s0_constr; s0.set_constrgauss(c.first, c.second); }
+  if (pinfo.Ae_constr != DifermionPars::ParConstr()) { 
+   auto c = pinfo.Ae_constr; Ae.set_constrgauss(c.first, c.second); }
+  if (pinfo.Af_constr != DifermionPars::ParConstr()) { 
+   auto c = pinfo.Af_constr; Af.set_constrgauss(c.first, c.second); }
+  if (pinfo.ef_constr != DifermionPars::ParConstr()) { 
+   auto c = pinfo.ef_constr; ef.set_constrgauss(c.first, c.second); }
+  if (pinfo.k0_constr != DifermionPars::ParConstr()) { 
+   auto c = pinfo.k0_constr; k0.set_constrgauss(c.first, c.second); }
+  if (pinfo.dk_constr != DifermionPars::ParConstr()) { 
+   auto c = pinfo.dk_constr; dk.set_constrgauss(c.first, c.second); }
+   
+  if (pinfo.s0_fixed) { s0.fix(); }
+  if (pinfo.Ae_fixed) { Ae.fix(); }
+  if (pinfo.Af_fixed) { Af.fix(); }
+  if (pinfo.ef_fixed) { ef.fix(); }
+  if (pinfo.k0_fixed) { k0.fix(); }
+  if (pinfo.dk_fixed) { dk.fix(); }
+  // clang-format on
+
+  m_pars = {s0, Ae, Af, ef, k0, dk};
+}
+
+void DifermionParamInfo::create_unpolarised_pars() {
+  /** Create the fit parameters which are necessary for the unpolarised
+   *scenario.
+   **/
+  using FitPar = PrEW::Fit::FitPar;
+  const auto &pinfo = m_par_info;
+
+  auto AFB_val = 3. / 8. * (pinfo.ef_val + 2. * pinfo.Ae_val * pinfo.Af_val);
+
+  auto s0 = FitPar(this->p_name("s0", pinfo.s0_name), pinfo.s0_val, 0.001);
+  auto Afb = FitPar(this->p_name("AFB", pinfo.ef_name), AFB_val, 0.001);
+  auto k0 = FitPar(this->p_name("k0", pinfo.k0_name), pinfo.k0_val, 0.001);
+
+  // clang-format off
+  if (pinfo.s0_constr != DifermionPars::ParConstr()) { 
+    auto c = pinfo.s0_constr; s0.set_constrgauss(c.first, c.second); }
+  if (pinfo.ef_constr != DifermionPars::ParConstr()) { 
+    auto c = pinfo.ef_constr; Afb.set_constrgauss(c.first, c.second); }
+  if (pinfo.k0_constr != DifermionPars::ParConstr()) { 
+    auto c = pinfo.k0_constr; k0.set_constrgauss(c.first, c.second); }
+
+  if (pinfo.s0_fixed) { s0.fix(); }
+  if (pinfo.ef_fixed) { Afb.fix(); }
+  if (pinfo.k0_fixed) { k0.fix(); }
+  // clang-format on
+
+  m_pars = {s0, Afb, k0};
+}
+
 PrEW::Data::FctLink
 DifermionParamInfo::get_fct_link(const PrEW::Data::DistrInfo &info) const {
   /** Get PrEW function link for a single chiral configuration.
@@ -165,7 +209,9 @@ DifermionParamInfo::get_fct_link(const PrEW::Data::DistrInfo &info) const {
       Names::CoefNaming::chi_xs_coef_name(this->get_RL_info(info.m_energy)),
       Names::CoefNaming::costheta_index_coef_name()};
 
-  if (info.m_pol_config == PrEW::GlobalVar::Chiral::eLpR) {
+  if (!m_polarised) {
+    fct_link.m_fct_name = "Unpol2fParam";
+  } else if (info.m_pol_config == PrEW::GlobalVar::Chiral::eLpR) {
     fct_link.m_fct_name = "General2fParam_LR";
   } else if (info.m_pol_config == PrEW::GlobalVar::Chiral::eRpL) {
     fct_link.m_fct_name = "General2fParam_RL";
